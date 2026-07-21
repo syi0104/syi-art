@@ -1,342 +1,213 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chen.SYi | 陳學儀</title>
+<meta name="description" content="陳學儀 CHEN, HSUEH-YI — 藝術家個人網站">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<x-dc>
-<helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="true">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&amp;family=Noto+Sans+TC:wght@300;400;500&amp;display=swap" rel="stylesheet">
-<script src="./image-slot.js"></script>
-<style>
-  body { margin: 0; background: #faf6f3; }
-  a { color: #8a5a52; }
-  a:hover { color: #b98177; }
-  ::selection { background: #ffe5e5; }
-</style>
-</helmet>
 
-<div style="font-family: 'Noto Sans TC', sans-serif; color: #2a2724; background: #faf6f3; overflow-x: hidden;">
-
-  <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 28px 5%; box-sizing: border-box; mix-blend-mode: difference;">
-    <a href="#gallery" style="font-family: 'Noto Serif TC', serif; font-size: 20px; letter-spacing: 0.08em; color: #fff; text-decoration: none;">陳學儀 <span style="opacity: 0.7; font-size: 14px;">CHEN S.YI</span></a>
-    <div style="display: flex; gap: 40px;">
-      <a href="#about" style="color: #fff; text-decoration: none; font-size: 15px; letter-spacing: 0.04em;">關於我</a>
-      <a href="#exhibitions" style="color: #fff; text-decoration: none; font-size: 15px; letter-spacing: 0.04em;">展覽紀錄</a>
-      <a href="#highlights" style="color: #fff; text-decoration: none; font-size: 15px; letter-spacing: 0.04em;">展覽花絮</a>
-      <a href="#works" style="color: #fff; text-decoration: none; font-size: 15px; letter-spacing: 0.04em;">作品集</a>
-      <a href="#contact" style="color: #fff; text-decoration: none; font-size: 15px; letter-spacing: 0.04em;">聯絡方式</a>
-    </div>
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox">
+  <a href="#gallery" class="nav-brand">陳學儀 <span>CHEN S.YI</span></a>
+  <label for="nav-toggle" class="nav-burger" aria-label="選單">
+    <span></span><span></span><span></span>
+  </label>
+  <nav class="nav-links">
+    <a href="#about">關於我</a>
+    <a href="#exhibitions">展覽紀錄</a>
+    <a href="#highlights">展覽花絮</a>
+    <a href="#works">作品集</a>
+    <a href="#contact">聯絡方式</a>
   </nav>
+</header>
 
-  <section id="gallery" style="position: relative; width: 100%; height: 100vh; min-height: 640px; background: #1d1a18; overflow: hidden;">
-    <div style="position: absolute; inset: 0;">
-      <image-slot id="hero" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="主視覺 — 陳學儀作品"></image-slot>
-    </div>
-    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.55) 100%); pointer-events: none;"></div>
+<section id="gallery" class="hero">
+  <img class="hero-img" src="assets/hero.jpg" alt="陳學儀展場空景">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>創作是屬於<br>自己的一種自白</h1>
+    <p class="hero-quote-zh">不管是蜜糖還是毒藥，我都將其灌注於作品之中。</p>
+    <p class="hero-quote-en">"Creation is a way for oneself to confess."</p>
+  </div>
+</section>
 
-    <div style="position: absolute; left: 5%; bottom: 90px; max-width: 640px; pointer-events: none;">
-      <h1 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: clamp(40px, 6vw, 76px); line-height: 1.1; color: #fff; margin: 0 0 20px 0;">創作是屬於<br>自己的一種自白</h1>
-      <p style="font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.85); margin: 0; max-width: 480px;">不管是蜜糖還是毒藥，我都將其灌注於作品之中。<br>"Creation is a way for oneself to confess."</p>
+<main>
+
+  <section id="about" class="section">
+    <div class="section-inner about-grid">
+      <img class="about-photo" src="assets/portrait.jpg" alt="陳學儀">
+      <div class="about-text">
+        <p class="eyebrow">About</p>
+        <h2>陳學儀</h2>
+        <p class="about-en">CHEN S.YI</p>
+        <p class="about-bio">1996 年生於臺灣・高雄市鳳山區。2018–2021 就讀於國立高雄師範大學美術系研究所，主修雕塑與立體創作。</p>
+        <p class="about-quote">「從生活片段中提取，以作品名義將人型作為切入點重現再造後的日常，藉此形變物的外觀，轉化物的本體性質。」</p>
+      </div>
     </div>
   </section>
 
-  <section id="about" style="padding: 160px 5% 140px; box-sizing: border-box; max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 300px 1fr; gap: 80px; align-items: start;">
-    <div>
-      <image-slot id="portrait" style="width: 100%; aspect-ratio: 1 / 1;" shape="circle" fit="cover" placeholder="作者肖像"></image-slot>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 24px; padding-top: 4px;">
-      <div>
-        <p style="font-size: 13px; letter-spacing: 0.2em; color: #a3877e; margin: 0 0 16px 0; text-transform: uppercase;">About</p>
-        <h2 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: 38px; line-height: 1.3; margin: 0; color: #1d1a18;">陳學儀</h2>
-        <p style="font-size: 15px; letter-spacing: 0.08em; color: #a3877e; margin: 6px 0 0 0;">CHEN S.YI</p>
-      </div>
-      <p style="font-size: 16px; line-height: 1.9; color: #52483f; margin: 0; max-width: 540px;">1996 年生於臺灣・高雄市鳳山區。2018–2021 就讀於國立高雄師範大學美術系研究所，主修雕塑與立體創作。</p>
-      <p style="font-style: italic; font-size: 17px; line-height: 1.8; color: #8a5a52; border-left: 2px solid #e8b8ad; padding-left: 22px; margin: 8px 0 0 0;">「從生活片段中提取，以作品名義將人型作為切入點重現再造後的日常，藉此形變物的外觀，轉化物的本體性質。」</p>
-    </div>
-  </section>
+  <section id="exhibitions" class="section alt">
+    <div class="section-inner">
+      <p class="eyebrow">Exhibitions</p>
+      <h2>展覽紀錄</h2>
+      <p class="lead">自 2012 年起參與東亞與兩岸多場公募展與聯展，2020 年於高雄舉辦首次個展，此後陸續受邀參與台北、首爾等地的藝術博覽會與空間邀展，持續以雕塑與立體創作探索身體、日常物件與消費文化之間的張力。</p>
 
-  <section id="exhibitions" style="position: relative; background: #f2ebe6;">
-    <div style="padding: 140px 5% 60px; box-sizing: border-box; max-width: 1200px; margin: 0 auto;">
-      <p style="font-size: 13px; letter-spacing: 0.2em; color: #a3877e; margin: 0 0 14px 0; text-transform: uppercase;">Exhibitions</p>
-      <h2 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: 40px; margin: 0 0 24px 0; color: #1d1a18;">展覽紀錄</h2>
-      <p style="font-size: 16px; line-height: 1.9; color: #6b5f55; max-width: 680px; margin: 0;">自 2012 年起參與東亞與兩岸多場公募展與聯展，2020 年於高雄舉辦首次個展，此後陸續受邀參與台北、首爾等地的藝術博覽會與空間邀展，持續以雕塑與立體創作探索身體、日常物件與消費文化之間的張力。</p>
-    </div>
-
-    <div style="position: relative; width: 100%; height: 72vh; min-height: 520px; overflow: hidden;">
-      <div style="position: absolute; inset: 0;">
-        <image-slot id="exh-slide-{{ currentExhSlide }}" style="width: 100%; height: 100%;" shape="rect" fit="cover" placeholder="{{ currentExhPlaceholder }}"></image-slot>
-      </div>
-      <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.7) 100%); pointer-events: none;"></div>
-
-      <div style="position: absolute; left: 5%; bottom: 60px; max-width: 620px; pointer-events: none;">
-        <p style="font-size: 13px; letter-spacing: 0.1em; color: #d8a99c; margin: 0 0 10px 0;">{{ currentExhYear }}</p>
-        <h3 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: 30px; color: #fff; margin: 0 0 14px 0;">{{ currentExhName }}</h3>
-        <p style="font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.85); margin: 0;">{{ currentExhDesc }}</p>
-      </div>
-
-      <button onClick="{{ prevExh }}" aria-label="previous" style="position: absolute; left: 24px; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.15); color: #fff; font-size: 18px; cursor: pointer;">←</button>
-      <button onClick="{{ nextExh }}" aria-label="next" style="position: absolute; right: 24px; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.15); color: #fff; font-size: 18px; cursor: pointer;">→</button>
-
-      <div style="position: absolute; right: 5%; bottom: 60px; display: flex; align-items: center; gap: 18px;">
-        <span style="color: rgba(255,255,255,0.75); font-size: 13px; letter-spacing: 0.1em;">{{ exhCounter }}</span>
-        <div style="display: flex; gap: 8px;">
-          <sc-for list="{{ exhSlides }}" as="es" hint-placeholder-count="4">
-            <button onClick="{{ es.select }}" style="width: {{ es.dotSize }}; height: {{ es.dotSize }}; border-radius: 50%; border: none; background: {{ es.dotColor }}; cursor: pointer; padding: 0;"></button>
-          </sc-for>
-        </div>
-      </div>
-    </div>
-
-    <div style="padding: 90px 5% 120px; box-sizing: border-box; max-width: 1200px; margin: 0 auto;">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px;">
+      <div class="record-grid">
         <div>
-          <h3 style="font-family: 'Noto Serif TC', serif; font-size: 18px; font-weight: 500; margin: 0 0 20px 0; color: #1d1a18;">展覽紀錄</h3>
-          <sc-for list="{{ exhibitions }}" as="ex" hint-placeholder-count="8">
-            <div style="display: flex; gap: 20px; padding: 12px 0; border-bottom: 1px solid #e2d5cb;">
-              <span style="font-size: 13px; color: #a3877e; min-width: 40px;">{{ ex.year }}</span>
-              <span style="font-size: 14px; color: #3a332d; line-height: 1.6;">{{ ex.name }}</span>
-            </div>
-          </sc-for>
+          <h3>展覽紀錄</h3>
+          <ul class="timeline">
+            <li><span class="year">2024</span><span class="desc">「駁二漾藝術博覽會」，高雄，台灣</span></li>
+            <li><span class="year">2024</span><span class="desc">「霧空間」，台北，台灣</span></li>
+            <li><span class="year">2024</span><span class="desc">「FLOWING ART 膠藝所」，台北，台灣</span></li>
+            <li><span class="year">2023</span><span class="desc">「駁二漾藝術博覽會」，高雄，台灣</span></li>
+            <li><span class="year">2022</span><span class="desc">「雄崗美術館聯展」，高雄，台灣</span></li>
+            <li><span class="year">2022</span><span class="desc">「FLOOR_SEOUL 聯展」，首爾，韓國</span></li>
+            <li><span class="year">2021</span><span class="desc">「ONEOFF 國際藝術博覽會」，台北，台灣</span></li>
+            <li><span class="year">2020</span><span class="desc">「叢生第二屆兩岸藝術院校聯展」，杭州，中國</span></li>
+            <li><span class="year">2020</span><span class="desc">「租－陳學儀個展」，116 空間，高雄，台灣</span></li>
+            <li><span class="year">2019</span><span class="desc">「藝術新聲」，大墩文化中心，台中，台灣</span></li>
+            <li><span class="year">2018</span><span class="desc">「反生長－聯展」，新營文化中心，台南，台灣</span></li>
+            <li><span class="year">2017</span><span class="desc">「面面觀：雕塑協會聯展」，高雄，台灣</span></li>
+            <li><span class="year">2017</span><span class="desc">「林鴻文師生聯展」，台南，台灣</span></li>
+            <li><span class="year">2013</span><span class="desc">「東亞國際公募展受獎作品展」，京都，日本</span></li>
+            <li><span class="year">2012</span><span class="desc">「東亞國際公募展受獎作品展」，京都，日本</span></li>
+          </ul>
         </div>
         <div>
-          <h3 style="font-family: 'Noto Serif TC', serif; font-size: 18px; font-weight: 500; margin: 0 0 20px 0; color: #1d1a18;">獲獎紀錄</h3>
-          <sc-for list="{{ awards }}" as="aw" hint-placeholder-count="6">
-            <div style="display: flex; gap: 20px; padding: 12px 0; border-bottom: 1px solid #e2d5cb;">
-              <span style="font-size: 13px; color: #a3877e; min-width: 40px;">{{ aw.year }}</span>
-              <span style="font-size: 14px; color: #3a332d; line-height: 1.6;">{{ aw.name }}</span>
-            </div>
-          </sc-for>
+          <h3>獲獎紀錄</h3>
+          <ul class="timeline">
+            <li><span class="year">2021</span><span class="desc">青藝力 YAP-POWER 入選</span></li>
+            <li><span class="year">2018</span><span class="desc">美術系 107 級畢業作品總審 特優</span></li>
+            <li><span class="year">2017</span><span class="desc">台南議長盃歹銅古社繪畫比賽 第二名</span></li>
+            <li><span class="year">2017</span><span class="desc">第九屆炫光設計畫徵件 入圍</span></li>
+            <li><span class="year">2017</span><span class="desc">台南議長盃繪畫比賽 第二名</span></li>
+            <li><span class="year">2016</span><span class="desc">台南學生美展平面漫畫類 第三名</span></li>
+            <li><span class="year">2016</span><span class="desc">台南80周年畫在台南繪圖比賽 入選</span></li>
+            <li><span class="year">2016</span><span class="desc">台南應用科技大學創意陶瓷比賽 第一名</span></li>
+            <li><span class="year">2015</span><span class="desc">第17屆天文宮寫生比賽社會組 優選</span></li>
+            <li><span class="year">2014</span><span class="desc">第三屆東亞高中職學生國際公募展 入選</span></li>
+            <li><span class="year">2014</span><span class="desc">高雄「洪都一刻」圖文比賽入選 社群出版獎</span></li>
+            <li><span class="year">2013</span><span class="desc">第六屆炫光計畫 入選</span></li>
+            <li><span class="year">2013</span><span class="desc">AFA 日韓台高中職國際公募展 入選</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exh-photos">
+        <img src="assets/exhibitions/exh-0.jpg" alt="2023 駁二漾藝術博覽會 展覽現場" loading="lazy">
+        <img src="assets/exhibitions/exh-1.jpg" alt="2024 駁二漾藝術博覽會 展覽現場" loading="lazy">
+        <img src="assets/exhibitions/exh-2.jpg" alt="2022 FLOOR_SEOUL 展覽現場" loading="lazy">
+        <img src="assets/exhibitions/exh-3.jpg" alt="2020 叢生聯展 展覽現場" loading="lazy">
+        <img src="assets/exhibitions/exh-4.jpg" alt="2020 個展「租」展覽現場" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section id="highlights" class="section">
+    <div class="section-inner">
+      <p class="eyebrow">Highlights</p>
+      <h2>近期展覽花絮</h2>
+      <div class="flash-stack">
+        <img src="assets/flash/flash-01.jpg" alt="展場空景" loading="lazy">
+        <img src="assets/flash/flash-02.jpg" alt="YOUNG ART KAOHSIUNG 展場合照" loading="lazy">
+        <img src="assets/flash/flash-03.jpg" alt="展場空景與作品特寫" loading="lazy">
+        <img src="assets/flash/flash-04.jpg" alt="展場交流花絮" loading="lazy">
+        <img src="assets/flash/flash-05.jpg" alt="FLOOR_SEOUL 展覽資訊" loading="lazy">
+        <img src="assets/flash/flash-06.jpg" alt="traces in the moment 展覽海報" loading="lazy">
+        <img src="assets/flash/flash-07.jpg" alt="展場空景" loading="lazy">
+        <div class="flash-grid">
+          <img src="assets/flash/flash-08.jpg" alt="展場作品" loading="lazy">
+          <img src="assets/flash/flash-09.jpg" alt="作品特寫" loading="lazy">
+          <img src="assets/flash/flash-10.jpg" alt="作品特寫" loading="lazy">
+          <img src="assets/flash/flash-11.jpg" alt="作品特寫" loading="lazy">
+          <img src="assets/flash/flash-12.jpg" alt="作品特寫" loading="lazy">
+          <img src="assets/flash/flash-13.jpg" alt="作品特寫" loading="lazy">
+        </div>
+        <img src="assets/flash/flash-14.jpg" alt="作品特寫" loading="lazy">
+        <img src="assets/flash/flash-15.jpg" alt="展場空景" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section id="works" class="section alt">
+    <div class="section-inner">
+      <p class="eyebrow">Works</p>
+      <h2>作品集</h2>
+
+      <div class="work-series">
+        <h3>美味的面貌</h3>
+        <p class="lead">以「飲食」作為切入點，將被甜美糖衣所包裹的歡樂商品作為主題，透過變形的手法將人的五官融入這些「為消費而生的完美商品」之中，重新詮釋日常物品，引發觀者對其本質與意義的質疑和反思。</p>
+        <div class="work-grid">
+          <figure><img src="assets/works/w0-0.webp" alt="我凍 紅酒口味" loading="lazy"><figcaption>我凍 紅酒口味<span>10x10x8cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-1.webp" alt="我凍 萊姆口味" loading="lazy"><figcaption>我凍 萊姆口味<span>10x10x8cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-2.webp" alt="我凍 野莓口味" loading="lazy"><figcaption>我凍 野莓口味<span>10x10x6cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-3.webp" alt="我凍 小人軟糖口味" loading="lazy"><figcaption>我凍 小人軟糖口味<span>10x10x6cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-4.webp" alt="我凍 蝶豆花口味" loading="lazy"><figcaption>我凍 蝶豆花口味<span>10x10x6cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-5.jpg" alt="大亨寶" loading="lazy"><figcaption>大亨寶<span>28x16x10cm・陶土、複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-6.webp" alt="漢寶堡" loading="lazy"><figcaption>漢寶堡<span>30x30x58cm・陶土、複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-7.webp" alt="大甜頭" loading="lazy"><figcaption>大甜頭<span>40x40x12cm・陶土、複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-8.jpg" alt="小甜頭" loading="lazy"><figcaption>小甜頭<span>12x12x5cm・陶土、複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-9.jpg" alt="牛奶巧克力" loading="lazy"><figcaption>牛奶巧克力<span>13x13x10cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-10.webp" alt="草莓莓莓莓莓莓莓莓吐司" loading="lazy"><figcaption>草莓莓莓莓莓莓莓莓吐司<span>16x10x31cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-11.webp" alt="餅乾" loading="lazy"><figcaption>餅乾<span>26x26x6cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-12.webp" alt="很芭樂ㄟ" loading="lazy"><figcaption>很芭樂ㄟ<span>80x20x13cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-13.jpg" alt="好彩頭" loading="lazy"><figcaption>好彩頭<span>12x12x50cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-14.webp" alt="哈哈哈密瓜" loading="lazy"><figcaption>哈哈哈密瓜<span>50x35x70cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-15.webp" alt="頭ma頭" loading="lazy"><figcaption>頭ma頭<span>12x12x10cm・陶土、複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-16.jpg" alt="誕糕" loading="lazy"><figcaption>誕糕<span>10x10x8cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-17.jpg" alt="糖仔" loading="lazy"><figcaption>糖仔<span>15 / 25cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w0-18.jpg" alt="大人軟糖" loading="lazy"><figcaption>大人軟糖<span>12x15x5cm・環氧樹脂</span></figcaption></figure>
+          <figure><img src="assets/works/w0-19.webp" alt="小人軟糖" loading="lazy"><figcaption>小人軟糖<span>13x11x5cm・複合媒材</span></figcaption></figure>
+        </div>
+      </div>
+
+      <div class="work-series">
+        <h3>舒服的載體</h3>
+        <p class="lead">以人型為切入點，將人體作為畫布，藉此強調出身體被外物干預的變化，形變成了載體的外觀，同時也轉化了物的本體性質。</p>
+        <div class="work-grid">
+          <figure><img src="assets/works/w1-0.jpg" alt="子椅" loading="lazy"><figcaption>子椅<span>35x35x80cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w1-1.jpg" alt="坐著看" loading="lazy"><figcaption>坐著看<span>120x30x45cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w1-2.jpg" alt="寶寶坐" loading="lazy"><figcaption>寶寶坐<span>65x35x35cm・複合媒材＋影像輸出</span></figcaption></figure>
+          <figure><img src="assets/works/w1-3.webp" alt="洗滌身心" loading="lazy"><figcaption>洗滌身心<span>15x15x3cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w1-4.jpg" alt="歡迎光臨" loading="lazy"><figcaption>歡迎光臨<span>80x60x3cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w1-5.jpg" alt="嚼嚼嚼嚼嚼嚼嚼嚼嚼嚼" loading="lazy"><figcaption>嚼嚼嚼嚼嚼嚼嚼嚼嚼嚼<span>100x10x5cm・環氧樹脂</span></figcaption></figure>
+          <figure><img src="assets/works/w1-6.jpg" alt="感覺中" loading="lazy"><figcaption>感覺中<span>12x12x13cm・複合媒材</span></figcaption></figure>
+          <figure><img src="assets/works/w1-7.jpg" alt="誰？" loading="lazy"><figcaption>誰？<span>64x42x4cm・複合媒材</span></figcaption></figure>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="highlights" style="padding: 120px 5% 100px; box-sizing: border-box; background: #faf6f3;">
-    <div style="max-width: 900px; margin: 0 auto;">
-      <p style="font-size: 13px; letter-spacing: 0.2em; color: #a3877e; margin: 0 0 14px 0; text-transform: uppercase;">Highlights</p>
-      <h2 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: 40px; margin: 0 0 50px 0; color: #1d1a18;">近期展覽花絮</h2>
-
-      <div style="display: flex; flex-direction: column; gap: 24px;">
-        <img src="assets/flash/flash-01.jpg" alt="展場空景" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-02.jpg" alt="YOUNG ART KAOHSIUNG 展場合照" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-03.jpg" alt="展場空景與作品特寫" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-04.jpg" alt="展場交流花絮" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-05.jpg" alt="FLOOR_SEOUL 展覽資訊" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-06.jpg" alt="traces in the moment 展覽海報" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-07.jpg" alt="展場空景" style="width: 100%; display: block; border-radius: 4px;">
-
-        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
-          <img src="assets/flash/flash-08.jpg" alt="展場作品" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border-radius: 4px;">
-          <img src="assets/flash/flash-09.jpg" alt="作品特寫" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border-radius: 4px;">
-          <img src="assets/flash/flash-10.jpg" alt="作品特寫" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border-radius: 4px;">
-          <img src="assets/flash/flash-11.jpg" alt="作品特寫" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border-radius: 4px;">
-          <img src="assets/flash/flash-12.jpg" alt="作品特寫" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border-radius: 4px;">
-        </div>
-        <img src="assets/flash/flash-13.jpg" alt="作品特寫" style="width: 188px; max-width: 40%; display: block; border-radius: 4px;">
-
-        <img src="assets/flash/flash-14.jpg" alt="作品特寫" style="width: 100%; display: block; border-radius: 4px;">
-        <img src="assets/flash/flash-15.jpg" alt="展場空景" style="width: 100%; display: block; border-radius: 4px;">
+  <section id="contact" class="section contact-section">
+    <div class="section-inner">
+      <p class="eyebrow">Contact</p>
+      <h2>歡迎合作與展覽邀約</h2>
+      <div class="contact-links">
+        <a href="mailto:kjd.k55519@gmail.com">kjd.k55519@gmail.com</a>
+        <a href="https://www.instagram.com/chensyi_art/" target="_blank" rel="noopener">Instagram</a>
       </div>
     </div>
   </section>
 
-  <section id="works" style="padding: 140px 5% 120px; box-sizing: border-box; background: #faf6f3;">
-    <div style="max-width: 1320px; margin: 0 auto;">
-      <p style="font-size: 13px; letter-spacing: 0.2em; color: #a3877e; margin: 0 0 14px 0; text-transform: uppercase;">Works</p>
-      <h2 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: 40px; margin: 0 0 60px 0; color: #1d1a18;">作品集</h2>
+</main>
 
-      <sc-for list="{{ seriesList }}" as="series" hint-placeholder-count="2">
-        <div style="margin-bottom: 100px; overflow: hidden;">
-          <h3 style="font-family: 'Noto Serif TC', serif; font-size: 24px; font-weight: 500; margin: 0 0 6px 0; color: #1d1a18;">{{ series.title }}</h3>
-          <p style="font-size: 14px; line-height: 1.8; color: #8a7d72; margin: 0 0 32px 0; max-width: 720px;">{{ series.subtitle }}</p>
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 24px; align-items: start;">
-            <sc-for list="{{ series.works }}" as="w" hint-placeholder-count="4">
-              <div style="display: flex; flex-direction: column;">
-                <div style="width: 100%; aspect-ratio: 1 / 1;">
-                  <image-slot id="{{ w.id }}" style="width: 100%; height: 100%;" shape="rounded" radius="6" fit="cover" placeholder="{{ w.name }}"></image-slot>
-                </div>
-                <p style="font-size: 14px; color: #1d1a18; margin: 10px 0 2px 0;">{{ w.name }}</p>
-                <p style="font-size: 12px; color: #a3877e; margin: 0;">{{ w.detail }}</p>
-              </div>
-            </sc-for>
-          </div>
-        </div>
-      </sc-for>
-    </div>
-  </section>
+<footer class="footer">
+  <p>&copy; 2026 Chen S.Yi. All works reserved.</p>
+</footer>
 
-  <section id="contact" style="padding: 160px 5% 180px; box-sizing: border-box; text-align: center; background: #1d1a18; color: #fff;">
-    <p style="font-size: 13px; letter-spacing: 0.2em; color: #d8a99c; margin: 0 0 14px 0; text-transform: uppercase;">Contact</p>
-    <h2 style="font-family: 'Noto Serif TC', serif; font-weight: 500; font-size: 44px; margin: 0 0 36px 0;">歡迎合作與展覽邀約</h2>
-    <div style="display: flex; justify-content: center; gap: 36px; font-size: 16px; flex-wrap: wrap;">
-      <a href="mailto:kjd.k55519@gmail.com" style="color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 4px;">kjd.k55519@gmail.com</a>
-      <a href="https://www.instagram.com/chensyi_art/" target="_blank" style="color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 4px;">Instagram</a>
-    </div>
-  </section>
-
-  <footer style="padding: 28px 5%; text-align: center; background: #1d1a18; color: rgba(255,255,255,0.4); font-size: 13px; border-top: 1px solid rgba(255,255,255,0.1);">
-    © {{ year }} Chen S.Yi. All works reserved.
-  </footer>
-
-</div>
-
-</x-dc>
-<script type="text/x-dc" data-dc-script>
-class Component extends DCLogic {
-  state = { exhSlide: 0 };
-
-  exhibitions = [
-    { year: '2024', name: '「駁二漾藝術博覽會」，高雄，台灣' },
-    { year: '2024', name: '「霧空間」，台北，台灣' },
-    { year: '2024', name: '「FLOWING ART 膠藝所」，台北，台灣' },
-    { year: '2023', name: '「駁二漾藝術博覽會」，高雄，台灣' },
-    { year: '2022', name: '「雄崗美術館聯展」，高雄，台灣' },
-    { year: '2022', name: '「FLOOR_SEOUL 聯展」，首爾，韓國' },
-    { year: '2021', name: '「ONEOFF 國際藝術博覽會」，台北，台灣' },
-    { year: '2020', name: '「叢生第二屆兩岸藝術院校聯展」，杭州，中國' },
-    { year: '2020', name: '「租－陳學儀個展」，116 空間，高雄，台灣' },
-    { year: '2019', name: '「藝術新聲」，大墩文化中心，台中，台灣' },
-    { year: '2018', name: '「反生長－聯展」，新營文化中心，台南，台灣' },
-    { year: '2017', name: '「面面觀：雕塑協會聯展」，高雄，台灣' },
-    { year: '2017', name: '「林鴻文師生聯展」，台南，台灣' },
-    { year: '2013', name: '「東亞國際公募展受獎作品展」，京都，日本' },
-    { year: '2012', name: '「東亞國際公募展受獎作品展」，京都，日本' }
-  ];
-
-  awards = [
-    { year: '2021', name: '青藝力 YAP-POWER 入選' },
-    { year: '2018', name: '美術系 107 級畢業作品總審 特優' },
-    { year: '2017', name: '台南議長盃歹銅古社繪畫比賽 第二名' },
-    { year: '2017', name: '第九屆炫光設計畫徵件 入圍' },
-    { year: '2017', name: '台南議長盃繪畫比賽 第二名' },
-    { year: '2016', name: '台南學生美展平面漫畫類 第三名' },
-    { year: '2016', name: '台南80周年畫在台南繪圖比賽 入選' },
-    { year: '2016', name: '台南應用科技大學創意陶瓷比賽 第一名' },
-    { year: '2015', name: '第17屆天文宮寫生比賽社會組 優選' },
-    { year: '2014', name: '第三屆東亞高中職學生國際公募展 入選' },
-    { year: '2014', name: '高雄「洪都一刻」圖文比賽入選 社群出版獎' },
-    { year: '2013', name: '第六屆炫光計畫 入選' },
-    { year: '2013', name: 'AFA 日韓台高中職國際公募展 入選' }
-  ];
-
-  exhSlidesData = [
-    {
-      year: '2023',
-      name: '駁二漾藝術博覽會',
-      location: '高雄，台灣',
-      description: '以複合媒材呈現「美味的面貌」系列，於高雄駁二藝術特區的年度大型藝術博覽會展出。',
-      placeholder: '展覽現場 — 2023 駁二漾藝術博覽會'
-    },
-    {
-      year: '2024',
-      name: '駁二漾藝術博覽會',
-      location: '高雄，台灣',
-      description: '連續第二年參與駁二漾藝術博覽會，於高雄駁二藝術特區展出雕塑作品。',
-      placeholder: '展覽現場 — 2024 駁二漾藝術博覽會'
-    },
-    {
-      year: '2022',
-      name: 'FLOOR_SEOUL 聯展',
-      location: '首爾，韓國',
-      description: '首次跨海參展，於首爾當代藝術聯展現場展示雕塑系列，與韓國當代創作者同台交流。',
-      placeholder: '展覽現場 — 2022 FLOOR_SEOUL'
-    },
-    {
-      year: '2020',
-      name: '叢生－第二屆兩岸藝術院校聯展',
-      location: '杭州，中國',
-      description: '受邀參與兩岸藝術院校交流聯展，於杭州展出「很芭樂ㄟ」系列雕塑作品。',
-      placeholder: '展覽現場 — 2020 叢生聯展'
-    },
-    {
-      year: '2020',
-      name: '租－陳學儀個展',
-      location: '116 空間，高雄，台灣',
-      description: '首次個展，以高雄 116 空間為場域，完整呈現創作脈絡與階段性風格轉變。',
-      placeholder: '展覽現場 — 2020 個展「租」'
-    }
-  ];
-
-  seriesData = [
-    {
-      title: '美味的面貌',
-      subtitle: '以「飲食」作為切入點，將被甜美糖衣所包裹的歡樂商品作為主題，透過變形的手法將人的五官融入這些「為消費而生的完美商品」之中，重新詮釋日常物品，引發觀者對其本質與意義的質疑和反思。',
-      works: [
-        { name: '我凍 紅酒口味', detail: '10x10x8cm・複合媒材' },
-        { name: '我凍 萊姆口味', detail: '10x10x8cm・複合媒材' },
-        { name: '我凍 野莓口味', detail: '10x10x6cm・複合媒材' },
-        { name: '我凍 小人軟糖口味', detail: '10x10x6cm・複合媒材' },
-        { name: '我凍 蝶豆花口味', detail: '10x10x6cm・複合媒材' },
-        { name: '大亨寶', detail: '28x16x10cm・陶土、複合媒材' },
-        { name: '漢寶堡', detail: '30x30x58cm・陶土、複合媒材' },
-        { name: '大甜頭', detail: '40x40x12cm・陶土、複合媒材' },
-        { name: '小甜頭', detail: '12x12x5cm・陶土、複合媒材' },
-        { name: '牛奶巧克力', detail: '13x13x10cm・複合媒材' },
-        { name: '草莓莓莓莓莓莓莓莓吐司', detail: '16x10x31cm・複合媒材' },
-        { name: '餅乾', detail: '26x26x6cm・複合媒材' },
-        { name: '很芭樂ㄟ', detail: '80x20x13cm・複合媒材' },
-        { name: '好彩頭', detail: '12x12x50cm・複合媒材' },
-        { name: '哈哈哈密瓜', detail: '50x35x70cm・複合媒材' },
-        { name: '頭ma頭', detail: '12x12x10cm・陶土、複合媒材' },
-        { name: '誕糕', detail: '10x10x8cm・複合媒材' },
-        { name: '糖仔', detail: '15 / 25cm・複合媒材' },
-        { name: '大人軟糖', detail: '12x15x5cm・環氧樹脂' },
-        { name: '小人軟糖', detail: '13x11x5cm・複合媒材' }
-      ]
-    },
-    {
-      title: '舒服的載體',
-      subtitle: '以人型為切入點，將人體作為畫布，藉此強調出身體被外物干預的變化，形變成了載體的外觀，同時也轉化了物的本體性質。',
-      works: [
-        { name: '子椅', detail: '35x35x80cm・複合媒材' },
-        { name: '坐著看', detail: '120x30x45cm・複合媒材' },
-        { name: '寶寶坐', detail: '65x35x35cm・複合媒材＋影像輸出' },
-        { name: '洗滌身心', detail: '15x15x3cm・複合媒材' },
-        { name: '歡迎光臨', detail: '80x60x3cm・複合媒材' },
-        { name: '嚼嚼嚼嚼嚼嚼嚼嚼嚼嚼', detail: '100x10x5cm・環氧樹脂' },
-        { name: '感覺中', detail: '12x12x13cm・複合媒材' },
-        { name: '誰？', detail: '64x42x4cm・複合媒材' }
-      ]
-    }
-  ];
-
-  renderVals() {
-    const exhCount = this.exhSlidesData.length;
-    const exhSlide = this.state.exhSlide;
-    const goExh = (i) => this.setState({ exhSlide: (i + exhCount) % exhCount });
-    const currentExh = this.exhSlidesData[exhSlide];
-
-    return {
-      exhibitions: this.exhibitions,
-      awards: this.awards,
-      currentExhSlide: exhSlide,
-      currentExhPlaceholder: currentExh.placeholder,
-      currentExhYear: currentExh.year,
-      currentExhName: currentExh.name + '，' + currentExh.location,
-      currentExhDesc: currentExh.description,
-      exhCounter: String(exhSlide + 1).padStart(2, '0') + ' / ' + String(exhCount).padStart(2, '0'),
-      prevExh: () => goExh(exhSlide - 1),
-      nextExh: () => goExh(exhSlide + 1),
-      exhSlides: Array.from({ length: exhCount }, (_, i) => ({
-        select: () => goExh(i),
-        dotSize: i === exhSlide ? '10px' : '7px',
-        dotColor: i === exhSlide ? '#ffffff' : 'rgba(255,255,255,0.4)'
-      })),
-      seriesList: this.seriesData.map((s, si) => ({
-        title: s.title,
-        subtitle: s.subtitle,
-        works: s.works.map((w, wi) => ({ id: 'work-' + si + '-' + wi, name: w.name, detail: w.detail }))
-      })),
-      year: new Date().getFullYear()
-    };
-  }
-}
-
+<script>
+document.querySelectorAll('.nav-links a').forEach(function (a) {
+  a.addEventListener('click', function () {
+    document.getElementById('nav-toggle').checked = false;
+  });
+});
 </script>
+
 </body>
 </html>
