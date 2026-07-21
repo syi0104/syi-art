@@ -290,17 +290,21 @@ img { max-width: 100%; display: block; }
 }
 
 .work-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: clamp(1rem, 2.5vw, 1.5rem);
+  column-width: 200px;
+  column-gap: clamp(1rem, 2.5vw, 1.5rem);
 }
 
-.work-grid figure { margin: 0; }
+.work-grid figure {
+  margin: 0 0 clamp(1.5rem, 3vw, 2.25rem);
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
 .work-grid img {
   width: 100%;
-  aspect-ratio: 1/1;
-  object-fit: cover;
+  height: auto;
+  display: block;
   border-radius: 4px;
+  background: #efe8e2;
 }
 .work-grid figcaption {
   font-size: 0.85rem;
