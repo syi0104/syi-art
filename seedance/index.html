@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seedance 提示詞收藏庫</title>
+<style>
+  :root{
+    --bg:#14110f; --panel:#1e1a17; --panel2:#262019;
+    --text:#f3ece2; --muted:#a99e8f; --line:#39312a;
+    --accent:#c9a25f; --accent-soft:#3a2f1d; --ok:#6fae7a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Noto Serif TC","PingFang TC","Heiti TC",serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  a{color:var(--accent)}
+
+  /* ---- header ---- */
+  header{
+    padding:22px 18px 14px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:rgba(20,17,15,.94);
+    backdrop-filter:blur(8px); z-index:20;
+  }
+  .title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title h1{font-size:1.35rem;margin:0;font-weight:600;letter-spacing:.5px}
+  .title .count{color:var(--muted);font-size:.85rem}
+  .search{
+    margin-top:12px;width:100%;padding:11px 14px;font-size:1rem;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    color:var(--text);font-family:inherit;
+  }
+  .search::placeholder{color:var(--muted)}
+  .search:focus{outline:none;border-color:var(--accent)}
+
+  /* ---- tag bar ---- */
+  .tagbar{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .tag{
+    font-size:.8rem;padding:5px 11px;border-radius:20px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    user-select:none;transition:.15s;
+  }
+  .tag:hover{color:var(--text)}
+  .tag.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .tag .c{opacity:.6;font-size:.72rem;margin-left:3px}
+  .tagbar .clear{color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.78rem;padding:5px 4px}
+
+  /* ---- grid ---- */
+  main{padding:16px;max-width:1200px;margin:0 auto}
+  .grid{
+    display:grid;gap:14px;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:.15s;
+  }
+  .card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .thumb{
+    width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--panel2);
+    display:block;
+  }
+  .thumb.ph{
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:.8rem;text-align:center;padding:12px;
+  }
+  .card-body{padding:11px 12px 13px}
+  .card-body .p{
+    font-size:.86rem;color:var(--text);
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+  .card-tags span{font-size:.7rem;color:var(--accent);background:var(--accent-soft);
+    padding:2px 8px;border-radius:12px}
+  .empty{color:var(--muted);text-align:center;padding:60px 20px;font-size:.95rem}
+
+  /* ---- modal ---- */
+  .modal{
+    position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:50;
+    display:none;align-items:flex-start;justify-content:center;
+    padding:24px 14px;overflow-y:auto;
+  }
+  .modal.open{display:flex}
+  .sheet{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    max-width:640px;width:100%;overflow:hidden;
+  }
+  .sheet img{width:100%;max-height:60vh;object-fit:contain;background:#000;display:block}
+  .sheet .ph{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
+    color:var(--muted);background:var(--panel2);font-size:.85rem}
+  .sheet-body{padding:16px 18px 20px}
+  .sheet .meta{display:flex;justify-content:space-between;align-items:center;
+    color:var(--muted);font-size:.8rem;margin-bottom:10px}
+  .promptbox{
+    background:var(--bg);border:1px solid var(--line);border-radius:10px;
+    padding:13px 14px;font-size:.95rem;line-height:1.75;white-space:pre-wrap;
+    user-select:text;-webkit-user-select:text;
+  }
+  .btns{display:flex;gap:10px;margin-top:12px}
+  .btn{
+    flex:1;padding:12px;border-radius:10px;border:1px solid var(--accent);
+    background:var(--accent);color:#241c0e;font-family:inherit;font-size:.95rem;
+    font-weight:600;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.copied{background:var(--ok);border-color:var(--ok);color:#0f1a12}
+  .btn.ghost{background:transparent;color:var(--muted);border-color:var(--line);flex:0 0 auto;padding:12px 16px}
+  .sheet-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+  .sheet-tags span{font-size:.78rem;color:var(--accent);background:var(--accent-soft);
+    padding:4px 10px;border-radius:14px}
+  .note{margin-top:14px;color:var(--muted);font-size:.86rem;
+    border-left:2px solid var(--line);padding-left:11px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <h1>Seedance 提示詞收藏庫</h1>
+    <span class="count" id="count"></span>
+  </div>
+  <input class="search" id="search" placeholder="搜尋提示詞、標籤或備註…" autocomplete="off">
+  <div class="tagbar" id="tagbar"></div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">找不到符合的提示詞。</div>
+</main>
+
+<div class="modal" id="modal">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  var DATA = (window.SEEDANCE_PROMPTS || []).slice();
+  var activeTags = new Set();
+  var query = "";
+
+  var grid = document.getElementById('grid');
+  var empty = document.getElementById('empty');
+  var tagbar = document.getElementById('tagbar');
+  var countEl = document.getElementById('count');
+  var searchEl = document.getElementById('search');
+  var modal = document.getElementById('modal');
+  var sheet = document.getElementById('sheet');
+
+  function imgSrc(item){ return item.image ? item.image : null; }
+
+  // ---- build tag bar with counts ----
+  function buildTags(){
+    var counts = {};
+    DATA.forEach(function(it){ (it.tags||[]).forEach(function(t){ counts[t]=(counts[t]||0)+1; }); });
+    var tags = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    tagbar.innerHTML = "";
+    tags.forEach(function(t){
+      var el = document.createElement('span');
+      el.className = 'tag' + (activeTags.has(t)?' on':'');
+      el.innerHTML = t + '<span class="c">'+counts[t]+'</span>';
+      el.onclick = function(){
+        if(activeTags.has(t)) activeTags.delete(t); else activeTags.add(t);
+        render();
+      };
+      tagbar.appendChild(el);
+    });
+    if(activeTags.size){
+      var clr = document.createElement('span');
+      clr.className='clear'; clr.textContent='清除標籤';
+      clr.onclick=function(){ activeTags.clear(); render(); };
+      tagbar.appendChild(clr);
+    }
+  }
+
+  function match(it){
+    // tag filter: must contain ALL selected tags
+    for(var t of activeTags){ if(!(it.tags||[]).includes(t)) return false; }
+    if(query){
+      var hay = (it.prompt+' '+(it.tags||[]).join(' ')+' '+(it.note||'')).toLowerCase();
+      if(hay.indexOf(query)===-1) return false;
+    }
+    return true;
+  }
+
+  function render(){
+    buildTags();
+    var list = DATA.filter(match);
+    countEl.textContent = list.length + ' / ' + DATA.length + ' 條';
+    grid.innerHTML = "";
+    empty.style.display = list.length? 'none':'block';
+    list.forEach(function(it){
+      var card = document.createElement('div');
+      card.className='card';
+      var src = imgSrc(it);
+      var thumb = src
+        ? '<img class="thumb" src="'+src+'" alt="" loading="lazy">'
+        : '<div class="thumb ph">尚無截圖</div>';
+      var tagsHtml = (it.tags||[]).slice(0,4).map(function(t){return '<span>'+esc(t)+'</span>';}).join('');
+      card.innerHTML = thumb +
+        '<div class="card-body"><div class="p">'+esc(it.prompt)+'</div>'+
+        '<div class="card-tags">'+tagsHtml+'</div></div>';
+      card.onclick=function(){ openModal(it); };
+      grid.appendChild(card);
+    });
+  }
+
+  function openModal(it){
+    var src = imgSrc(it);
+    var img = src
+      ? '<img src="'+src+'" alt="">'
+      : '<div class="ph">尚無截圖 — 加一張截圖能幫你更快回想畫面</div>';
+    var tags = (it.tags||[]).map(function(t){return '<span>'+esc(t)+'</span>';}).join('');
+    var note = it.note ? '<div class="note">'+esc(it.note)+'</div>' : '';
+    var src2 = it.source ? '<a href="'+esc(it.source)+'" target="_blank" rel="noopener">參考影片 ↗</a>' : '';
+    sheet.innerHTML =
+      img +
+      '<div class="sheet-body">'+
+        '<div class="meta"><span>'+esc(it.date||'')+'</span><span>'+src2+'</span></div>'+
+        '<div class="promptbox" id="pbox">'+esc(it.prompt)+'</div>'+
+        '<div class="btns">'+
+          '<button class="btn" id="copybtn">複製提示詞</button>'+
+          '<button class="btn ghost" id="closebtn">關閉</button>'+
+        '</div>'+
+        '<div class="sheet-tags">'+tags+'</div>'+
+        note+
+      '</div>';
+    modal.classList.add('open');
+    document.getElementById('closebtn').onclick=closeModal;
+    document.getElementById('copybtn').onclick=function(){ copyText(it.prompt, this); };
+  }
+  function closeModal(){ modal.classList.remove('open'); }
+  modal.onclick=function(e){ if(e.target===modal) closeModal(); };
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
+
+  function copyText(text, btn){
+    var done=function(){ btn.textContent='已複製 ✓'; btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent='複製提示詞'; btn.classList.remove('copied'); },1600); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(text,done); });
+    } else fallback(text,done);
+  }
+  function fallback(text,done){
+    var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+    ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); done();
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  searchEl.oninput=function(){ query=this.value.trim().toLowerCase(); render(); };
+
+  render();
+})();
+</script>
+</body>
+</html>
