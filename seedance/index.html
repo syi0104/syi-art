@@ -851,6 +851,10 @@
       if(!p||!p.id)return;
       var e=m.get(p.id);
       if(!e||(p.updatedAt||0)>=(e.updatedAt||0)){
+        /* Drive now stores prompts WITHOUT images (see saveToDrive) to keep
+           sync payloads small, so an incoming record never carries an image.
+           Don't let that erase an image already known on this device. */
+        if(e&&e.image&&!p.image)p=Object.assign({},p,{image:e.image});
         m.set(p.id,p);
         merged++;
       }else{
@@ -862,18 +866,16 @@
   }
 
   /* ---------- Google Drive sync ---------- */
-  var DRIVE_STEM='seedance-prompts-data', DRIVE_TEXT_STEM='seedance-prompts-text', DRIVE_FOLDER_NAME='Seedance提示詞_同步資料';
+  var DRIVE_STEM='seedance-prompts-data', DRIVE_FOLDER_NAME='Seedance提示詞_同步資料';
   function stampedName(stem){var d=new Date();function z(n){return (n<10?'0':'')+n;}return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+'-'+z(d.getMinutes())+'-'+z(d.getSeconds())+' '+stem+'.json';}
-  var lastTextMirror='';
-  function saveTextMirror(){
-    if(driveState!=='ready'||!window.claude||!window.claude.mcp)return;
-    var slim=data.prompts.map(function(p){return {type:p.type||'video',prompt:p.prompt,tags:p.tags||[]};});
-    var body=JSON.stringify(slim);
-    if(body===lastTextMirror)return; /* 沒變就不重複寫 */
-    var req={title:stampedName(DRIVE_TEXT_STEM),textContent:body,contentMimeType:'application/json',disableConversionToGoogleType:true};
-    if(driveFolderId)req.parentId=driveFolderId;
-    window.claude.mcp.callTool(driveServer,'create_file',req).then(function(){lastTextMirror=body;}).catch(function(){});
-  }
+  /* Drive uploads exclude images entirely (see saveToDrive) — screenshots are
+     kept local-only. Every save otherwise creates a brand new file (this
+     connector has no update/delete tool), so with images included the
+     folder had accumulated 50+ near-duplicate ~1MB files and new saves
+     started failing outright (upstream_error / "request failed (400)"),
+     most likely a payload-size ceiling on the artifact's MCP bridge itself
+     rather than anything about the Google account's storage quota. Dropping
+     images keeps every future upload in the tens-of-KB range. */
   var driveServer=null,driveFolderId=null,driveState='checking',driveBusy=false,driveDirty=false,lastSyncedAt=null,driveSaveTimer=null;
 
   function renderSyncUI(){
@@ -1012,8 +1014,13 @@
     driveBusy=true;
     renderSyncUI();
     var filename=stampedName(DRIVE_STEM);
-    console.log('[drive] uploading as:', filename);
-    var req={title:filename,textContent:JSON.stringify(data),contentMimeType:'application/json',disableConversionToGoogleType:true};
+    /* strip images — see the note above DRIVE_STEM for why */
+    var slimPrompts=data.prompts.map(function(p){
+      return {id:p.id,type:p.type||'video',prompt:p.prompt,tags:p.tags||[],createdAt:p.createdAt,updatedAt:p.updatedAt};
+    });
+    var body=JSON.stringify({version:data.version||2,prompts:slimPrompts});
+    console.log('[drive] uploading as:', filename, 'size:', body.length, 'bytes (images excluded)');
+    var req={title:filename,textContent:body,contentMimeType:'application/json',disableConversionToGoogleType:true};
     if(driveFolderId)req.parentId=driveFolderId;
     console.log('[drive] callTool(', driveServer, ', create_file, ...)');
     if(!window.claude||!window.claude.mcp){
@@ -1028,7 +1035,6 @@
       driveDirty=false;
       lastSyncedAt=Date.now();
       saveRetryCount=0;
-      saveTextMirror();
     }).catch(function(err){
       console.error('[drive] save error:', err, 'code:', err&&err.code, 'message:', err&&err.message, 'retryable:', err&&err.retryable);
       driveDirty=true; /* keep pending until it actually succeeds */
@@ -1167,9 +1173,7 @@
   }).then(function(ok){
     if(ok){
       console.log('[boot] Google Drive ready, loading from Drive...');
-      return loadFromDrive().then(function(){
-        saveTextMirror();
-      });
+      return loadFromDrive();
     }else{
       console.log('[boot] Google Drive not ready');
     }
