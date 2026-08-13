@@ -360,6 +360,26 @@
       img.src=url;
     });
   }
+  /* Re-compress an already-local dataURL down to a tiny thumbnail, specifically
+     for the Drive-synced copy (kept separate from the full-quality local
+     `image` so on-device display stays sharp while the synced copy stays
+     small no matter how large the original capture was). */
+  function shrinkForSync(dataUrl,maxDim,quality){
+    return new Promise(function(res){
+      if(!dataUrl){res('');return;}
+      var img=new Image();
+      img.onload=function(){
+        var w=img.naturalWidth,h=img.naturalHeight;
+        var s=Math.min(1,maxDim/Math.max(w,h));
+        var cw=Math.max(1,Math.round(w*s)),ch=Math.max(1,Math.round(h*s));
+        var c=document.createElement('canvas');c.width=cw;c.height=ch;
+        c.getContext('2d').drawImage(img,0,0,cw,ch);
+        try{res(c.toDataURL('image/jpeg',quality));}catch(e){res('');}
+      };
+      img.onerror=function(){res('');};
+      img.src=dataUrl;
+    });
+  }
 
   /* ---------- helpers ---------- */
   var $=function(s,r){return (r||document).querySelector(s);};
@@ -851,10 +871,10 @@
       if(!p||!p.id)return;
       var e=m.get(p.id);
       if(!e||(p.updatedAt||0)>=(e.updatedAt||0)){
-        /* Drive now stores prompts WITHOUT images (see saveToDrive) to keep
-           sync payloads small, so an incoming record never carries an image.
-           Don't let that erase an image already known on this device. */
-        if(e&&e.image&&!p.image)p=Object.assign({},p,{image:e.image});
+        /* The remote copy's image (if any) is always a small sync thumbnail
+           (see saveToDrive/shrinkForSync) — never better than a full-quality
+           image already captured on this device. Keep the local one. */
+        if(e&&e.image)p=Object.assign({},p,{image:e.image});
         m.set(p.id,p);
         merged++;
       }else{
@@ -1005,24 +1025,12 @@
       return r;
     });
   }
+  var SYNC_THUMB_DIM=200, SYNC_THUMB_Q=0.45; /* small enough that dozens of images still stay well under any payload ceiling */
   function saveToDrive(){
     if(driveState!=='ready'||!driveDirty){
       console.log('[drive] saveToDrive skip: state='+driveState+' dirty='+driveDirty);
       return;
     }
-    console.log('[drive] saveToDrive start...');
-    driveBusy=true;
-    renderSyncUI();
-    var filename=stampedName(DRIVE_STEM);
-    /* strip images — see the note above DRIVE_STEM for why */
-    var slimPrompts=data.prompts.map(function(p){
-      return {id:p.id,type:p.type||'video',prompt:p.prompt,tags:p.tags||[],createdAt:p.createdAt,updatedAt:p.updatedAt};
-    });
-    var body=JSON.stringify({version:data.version||2,prompts:slimPrompts});
-    console.log('[drive] uploading as:', filename, 'size:', body.length, 'bytes (images excluded)');
-    var req={title:filename,textContent:body,contentMimeType:'application/json',disableConversionToGoogleType:true};
-    if(driveFolderId)req.parentId=driveFolderId;
-    console.log('[drive] callTool(', driveServer, ', create_file, ...)');
     if(!window.claude||!window.claude.mcp){
       console.error('[drive] window.claude.mcp not available during save!');
       driveState='no_mcp';
@@ -1030,7 +1038,25 @@
       renderSyncUI();
       return;
     }
-    window.claude.mcp.callTool(driveServer,'create_file',req).then(function(res){
+    console.log('[drive] saveToDrive start...');
+    driveBusy=true;
+    renderSyncUI();
+    var filename=stampedName(DRIVE_STEM);
+    var promptsSnapshot=data.prompts.slice();
+    /* Shrink every image down to a tiny thumbnail for the synced copy —
+       local storage keeps the full-quality one untouched. */
+    Promise.all(promptsSnapshot.map(function(p){
+      return shrinkForSync(p.image,SYNC_THUMB_DIM,SYNC_THUMB_Q).then(function(thumb){
+        return {id:p.id,type:p.type||'video',prompt:p.prompt,tags:p.tags||[],image:thumb,createdAt:p.createdAt,updatedAt:p.updatedAt};
+      });
+    })).then(function(slimPrompts){
+      var body=JSON.stringify({version:data.version||2,prompts:slimPrompts});
+      console.log('[drive] uploading as:', filename, 'size:', body.length, 'bytes (images shrunk to thumbnails)');
+      var req={title:filename,textContent:body,contentMimeType:'application/json',disableConversionToGoogleType:true};
+      if(driveFolderId)req.parentId=driveFolderId;
+      console.log('[drive] callTool(', driveServer, ', create_file, ...)');
+      return window.claude.mcp.callTool(driveServer,'create_file',req);
+    }).then(function(res){
       console.log('[drive] save success, response:', res);
       driveDirty=false;
       lastSyncedAt=Date.now();
