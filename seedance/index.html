@@ -359,10 +359,20 @@
      already landed — nothing async left in flight that a tab close could cut
      off mid-way, unlike the previous IndexedDB-based persist(). */
   function persist(skipSync){
+    console.log('[persist] called with',data.prompts.length,'prompts, skipSync=',!!skipSync);
     var ok=lsSet(data);
     if(!ok){
       console.warn('[ls] save failed — likely storage quota exceeded');
       toast('⚠ 本機儲存空間不足,建議先「⬇ 匯出」備份');
+    }else{
+      /* read back immediately to prove the write actually landed, not just that setItem didn't throw */
+      var verify=lsGet();
+      var verifyLen=verify&&verify.prompts?verify.prompts.length:-1;
+      console.log('[persist] verify read-back: ',verifyLen,'prompts in localStorage (expected',data.prompts.length,')');
+      if(verifyLen!==data.prompts.length){
+        console.error('[persist] MISMATCH! write did not actually persist correctly');
+        toast('⚠ 本機儲存驗證失敗,請截圖 Console 給開發者看');
+      }
     }
     render();
     if(!skipSync) scheduleDriveSave();
@@ -546,12 +556,30 @@
     $('#cancel').onclick=function(){isEdit?openDetail(existing.id):closeModal();};
     $('#ov').onclick=function(e){if(e.target.id==='ov'){isEdit?openDetail(existing.id):closeModal();}};
     $('#save').onclick=function(){
-      var prompt=$('#fPrompt').value.trim();
-      if(!prompt){toast('請先貼上或組裝提示詞');return;}
-      draft.prompt=prompt;draft.updatedAt=Date.now();
-      if(isEdit){var idx=data.prompts.findIndex(function(x){return x.id===draft.id;});draft.createdAt=existing.createdAt||Date.now();if(idx>=0)data.prompts[idx]=draft;}
-      else{draft.createdAt=Date.now();data.prompts.push(draft);}
-      closeModal();persist();toast(isEdit?'已儲存':'已收藏 ✓');
+      console.log('[save] button clicked, isEdit=',isEdit);
+      try{
+        var prompt=$('#fPrompt').value.trim();
+        console.log('[save] prompt length:',prompt.length);
+        if(!prompt){console.warn('[save] BLOCKED: empty prompt');toast('請先貼上或組裝提示詞');return;}
+        draft.prompt=prompt;draft.updatedAt=Date.now();
+        if(isEdit){
+          var idx=data.prompts.findIndex(function(x){return x.id===draft.id;});
+          draft.createdAt=existing.createdAt||Date.now();
+          if(idx>=0)data.prompts[idx]=draft;
+          console.log('[save] edited existing at index',idx,'new total:',data.prompts.length);
+        }else{
+          draft.createdAt=Date.now();
+          data.prompts.push(draft);
+          console.log('[save] pushed new record, id=',draft.id,'new total:',data.prompts.length);
+        }
+        closeModal();
+        persist();
+        console.log('[save] persist() called, data.prompts.length now:',data.prompts.length);
+        toast(isEdit?'已儲存':'已收藏 ✓');
+      }catch(err){
+        console.error('[save] EXCEPTION during save:',err);
+        toast('⚠ 儲存時發生錯誤:'+(err&&err.message?err.message:'未知錯誤'));
+      }
     };
   }
 
@@ -898,8 +926,9 @@
           var remote=JSON.parse(b64ToUtf8(b64));
           var rp=Array.isArray(remote)?remote:(remote.prompts||[]);
           var before=JSON.stringify(data.prompts);
-          console.log('[drive] merging:', rp.length, 'remote prompts');
+          console.log('[drive] merging: local has',data.prompts.length,'prompts, remote has',rp.length,'prompts');
           data.prompts=mergePrompts(data.prompts,rp);
+          console.log('[drive] after merge: data.prompts.length =',data.prompts.length);
           normalize();
           lastSyncedAt=Date.now();
           lsSet(data);
