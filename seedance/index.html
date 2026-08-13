@@ -183,6 +183,7 @@
         <div class="actions">
           <button class="iconbtn" id="btnExport" title="匯出備份">⬇ 匯出</button>
           <button class="iconbtn" id="btnImport" title="匯入備份">⬆ 匯入</button>
+          <button class="iconbtn" id="btnDebug" title="除錯訊息">🐛 除錯</button>
         </div>
       </div>
       <div class="seg" id="typeSeg">
@@ -211,6 +212,37 @@
 <script>
 (function(){
   "use strict";
+
+  /* ---------- on-screen debug log: mirrors console.log/warn/error into a visible
+     panel, since mobile viewers have no way to open browser devtools ---------- */
+  var DEBUG_LOG=[];
+  var MAX_DEBUG_LINES=300;
+  (function wrapConsole(){
+    ['log','warn','error'].forEach(function(level){
+      var orig=console[level].bind(console);
+      console[level]=function(){
+        var args=Array.prototype.slice.call(arguments);
+        var line=args.map(function(a){
+          if(a===undefined)return 'undefined';
+          if(a===null)return 'null';
+          if(typeof a==='object'){try{return JSON.stringify(a);}catch(e){return String(a);}}
+          return String(a);
+        }).join(' ');
+        var t=new Date();
+        function z(n){return (n<10?'0':'')+n;}
+        var ts=z(t.getHours())+':'+z(t.getMinutes())+':'+z(t.getSeconds())+'.'+(t.getMilliseconds()+'').padStart(3,'0');
+        DEBUG_LOG.push('['+ts+'] ['+level+'] '+line);
+        if(DEBUG_LOG.length>MAX_DEBUG_LINES)DEBUG_LOG.shift();
+        orig.apply(console,args);
+      };
+    });
+  })();
+  window.addEventListener('error',function(e){
+    console.error('[uncaught]',e.message,'at',e.filename+':'+e.lineno);
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    console.error('[unhandled promise rejection]',e.reason&&e.reason.message?e.reason.message:JSON.stringify(e.reason));
+  });
 
   /* ---------- storage: localStorage (synchronous — cannot be interrupted mid-write
      by a tab close the way an async IndexedDB transaction's callback can) ---------- */
@@ -786,6 +818,27 @@
         toast('文字格式不對,請確認是完整貼上備份文字');
       }
     };
+  };
+
+  /* on-screen version of the browser console, for viewers (mostly mobile) who
+     have no way to open devtools */
+  $('#btnDebug').onclick=function(){
+    var text=DEBUG_LOG.length?DEBUG_LOG.join('\n'):'(目前沒有任何紀錄)';
+    var d=document.createElement('div');
+    d.className='overlay top';
+    d.innerHTML='<div class="sheet">'+
+      '<h2>🐛 除錯訊息</h2>'+
+      '<p class="hint" style="margin-top:0">這是 App 執行時的內部紀錄,遇到問題時可以按「複製全部」貼給開發者看。最新的在最下面。</p>'+
+      '<textarea id="dbgText" readonly style="width:100%;min-height:280px;font-size:.68rem;font-family:monospace;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text)">'+esc(text)+'</textarea>'+
+      '<div class="row"><button class="btn ghost" id="dbgClose">關閉</button><button class="btn ghost" id="dbgClear">清空紀錄</button><button class="btn" id="dbgCopy">複製全部</button></div>'+
+    '</div>';
+    document.body.appendChild(d);
+    d.onclick=function(e){if(e.target===d)d.remove();};
+    d.querySelector('#dbgClose').onclick=function(){d.remove();};
+    d.querySelector('#dbgClear').onclick=function(){DEBUG_LOG.length=0;toast('已清空');d.remove();};
+    d.querySelector('#dbgCopy').onclick=function(){copyText(text,this);};
+    // auto-scroll the textarea to the bottom so the newest lines are visible
+    var ta=d.querySelector('#dbgText');ta.scrollTop=ta.scrollHeight;
   };
 
   function mergePrompts(a,b){
