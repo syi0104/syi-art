@@ -902,6 +902,10 @@
       console.error('[drive] save error:', err, 'code:', err&&err.code, 'message:', err&&err.message, 'retryable:', err&&err.retryable);
       driveDirty=true; /* keep pending until it actually succeeds */
       var code=err&&err.code;
+      /* Only codes that truly cannot succeed without viewer action get a visible
+         warning state. Everything else (network hiccups, tool_error, timeouts,
+         rate limits...) is transient — stay 'ready' and quietly retry on the
+         next edit or the background sweep, same as our other working sync app. */
       if(code==='needs_reauth'){
         driveState='needs_reauth';
       } else if(code==='server_not_connected'){
@@ -911,7 +915,7 @@
       } else if(code==='not_granted'||code==='capability_disabled'||code==='capability_removed'){
         driveState='no_mcp';
       } else {
-        driveState='sync_error';
+        console.log('[drive] transient error, staying "ready" — will retry quietly');
       }
       /* per contract: only auto-retry errors explicitly stamped retryable, at most once, after a short delay */
       if(err&&err.retryable&&saveRetryCount<3){
@@ -936,6 +940,15 @@
     clearTimeout(driveSaveTimer);
     driveSaveTimer=setTimeout(saveToDrive,1500);
   }
+  /* Safety net: if a save failed and the viewer doesn't edit again, driveDirty
+     would otherwise sit unsynced forever. Quietly sweep every 30s and retry —
+     this is what makes transient failures self-heal without any visible error. */
+  setInterval(function(){
+    if(driveState==='ready'&&driveDirty&&!driveBusy){
+      console.log('[drive] background sweep: retrying pending save');
+      saveToDrive();
+    }
+  },30000);
   document.addEventListener('visibilitychange',function(){
     if(document.visibilityState==='hidden'){
       clearTimeout(driveSaveTimer);
