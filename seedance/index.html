@@ -719,14 +719,59 @@
   function b64ToUtf8(b64){var bin=atob(b64),bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder('utf-8').decode(bytes);}
 
   function driveDiscover(){
-    if(!window.claude||!window.claude.mcp){driveState='no_mcp';renderSyncUI();return Promise.resolve(false);}
+    console.log('[drive] discover: checking window.claude...');
+    if(!window.claude){
+      console.error('[drive] window.claude not found');
+      driveState='no_mcp';
+      renderSyncUI();
+      return Promise.resolve(false);
+    }
+    console.log('[drive] window.claude exists, checking .mcp...');
+    if(!window.claude.mcp){
+      console.error('[drive] window.claude.mcp not found');
+      driveState='no_mcp';
+      renderSyncUI();
+      return Promise.resolve(false);
+    }
+    console.log('[drive] calling listTools()...');
     return window.claude.mcp.listTools().then(function(res){
-      var srv=(res.servers||[]).find(function(s){var n=(s.tools||[]).map(function(t){return t.name;});return n.indexOf('create_file')!==-1&&n.indexOf('search_files')!==-1;});
-      if(!srv){driveState='not_connected';renderSyncUI();return false;}
-      if(srv.authStatus==='needs_reauth'){driveState='needs_reauth';renderSyncUI();return false;}
-      driveServer=srv.server;driveState='ready';renderSyncUI();
-      return ensureFolder().then(function(){return true;});
-    }).catch(function(err){driveState=(err&&err.code==='selection_required')?'selection_required':'sync_error';renderSyncUI();return false;});
+      console.log('[drive] listTools response:', res);
+      var servers=res.servers||[];
+      console.log('[drive] found', servers.length, 'servers');
+      servers.forEach(function(s,i){
+        console.log('[drive] server', i, ':', s.server, '- tools:', (s.tools||[]).map(function(t){return t.name;}).join(', '));
+      });
+      var srv=servers.find(function(s){
+        var n=(s.tools||[]).map(function(t){return t.name;});
+        return n.indexOf('create_file')!==-1&&n.indexOf('search_files')!==-1;
+      });
+      if(!srv){
+        console.error('[drive] no Google Drive server found');
+        driveState='not_connected';
+        renderSyncUI();
+        return false;
+      }
+      console.log('[drive] found server:', srv.server, 'authStatus:', srv.authStatus);
+      if(srv.authStatus==='needs_reauth'){
+        console.warn('[drive] needs reauth');
+        driveState='needs_reauth';
+        renderSyncUI();
+        return false;
+      }
+      driveServer=srv.server;
+      console.log('[drive] set driveServer to:', driveServer);
+      driveState='ready';
+      renderSyncUI();
+      return ensureFolder().then(function(){
+        console.log('[drive] ensureFolder done');
+        return true;
+      });
+    }).catch(function(err){
+      console.error('[drive] discover error:', err);
+      driveState=(err&&err.code==='selection_required')?'selection_required':'sync_error';
+      renderSyncUI();
+      return false;
+    });
   }
   function ensureFolder(){
     return window.claude.mcp.callTool(driveServer,'search_files',{query:"title = '"+DRIVE_FOLDER_NAME+"' and mimeType = 'application/vnd.google-apps.folder'",pageSize:10}).then(function(res){
@@ -783,20 +828,42 @@
     });
   }
   function saveToDrive(){
-    if(driveState!=='ready'||!driveDirty)return;
-    driveBusy=true;renderSyncUI();
-    var req={title:stampedName(DRIVE_STEM),textContent:JSON.stringify(data),contentMimeType:'application/json',disableConversionToGoogleType:true};
+    if(driveState!=='ready'||!driveDirty){
+      console.log('[drive] saveToDrive skip: state='+driveState+' dirty='+driveDirty);
+      return;
+    }
+    console.log('[drive] saveToDrive start...');
+    driveBusy=true;
+    renderSyncUI();
+    var filename=stampedName(DRIVE_STEM);
+    console.log('[drive] uploading as:', filename);
+    var req={title:filename,textContent:JSON.stringify(data),contentMimeType:'application/json',disableConversionToGoogleType:true};
     if(driveFolderId)req.parentId=driveFolderId;
+    console.log('[drive] callTool(', driveServer, ', create_file, ...)');
+    if(!window.claude||!window.claude.mcp){
+      console.error('[drive] window.claude.mcp not available during save!');
+      driveState='no_mcp';
+      driveBusy=false;
+      renderSyncUI();
+      return;
+    }
     window.claude.mcp.callTool(driveServer,'create_file',req).then(function(res){
-      console.log('[drive] save success');
+      console.log('[drive] save success, response:', res);
       driveDirty=false;
       lastSyncedAt=Date.now();
       saveTextMirror();
     }).catch(function(err){
-      console.error('[drive] save error:', err);
-      if(err&&err.code==='needs_reauth'){driveState='needs_reauth';}
-      else if(err&&err.code==='server_not_connected'){driveState='not_connected';}
+      console.error('[drive] save error:', err, 'code:', err&&err.code, 'message:', err&&err.message);
+      if(err&&err.code==='needs_reauth'){
+        console.log('[drive] -> needs_reauth');
+        driveState='needs_reauth';
+      }
+      else if(err&&err.code==='server_not_connected'){
+        console.log('[drive] -> not_connected');
+        driveState='not_connected';
+      }
       else {
+        console.log('[drive] -> sync_error (will retry)');
         driveState='sync_error';
         driveDirty=true; /* retry later */
       }
