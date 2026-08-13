@@ -213,11 +213,32 @@
 (function(){
   "use strict";
 
-  /* ---------- storage: IndexedDB single-object kv ---------- */
+  /* ---------- storage: localStorage (synchronous — cannot be interrupted mid-write
+     by a tab close the way an async IndexedDB transaction's callback can) ---------- */
+  var LS_KEY='seedance-db-v2';
+  function lsGet(){
+    try{
+      var raw=localStorage.getItem(LS_KEY);
+      return raw?JSON.parse(raw):null;
+    }catch(e){
+      console.error('[ls] read error:',e);
+      return null;
+    }
+  }
+  function lsSet(v){
+    try{
+      localStorage.setItem(LS_KEY,JSON.stringify(v));
+      return true;
+    }catch(e){
+      console.error('[ls] write error (quota exceeded?):',e);
+      return false;
+    }
+  }
+  /* ---------- legacy storage: old IndexedDB store, kept ONLY as a one-time
+     migration source so nothing already saved there gets lost ---------- */
   var IDB_NAME='seedance-db', IDB_STORE='kv', IDB_KEY='data';
   function idbOpen(){return new Promise(function(res,rej){var r=indexedDB.open(IDB_NAME,1);r.onupgradeneeded=function(){r.result.createObjectStore(IDB_STORE);};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
   function idbGet(){return idbOpen().then(function(db){return new Promise(function(res){try{var tx=db.transaction(IDB_STORE,'readonly');var g=tx.objectStore(IDB_STORE).get(IDB_KEY);g.onsuccess=function(){res(g.result||null);};g.onerror=function(){res(null);};}catch(e){res(null);}});}).catch(function(){return null;});}
-  function idbSet(v){return idbOpen().then(function(db){return new Promise(function(res){try{var tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,IDB_KEY);tx.oncomplete=function(){res(true);};tx.onerror=function(){res(false);};}catch(e){res(false);}});}).catch(function(){return false;});}
 
   /* ---------- data ---------- */
   var data={ version:2, prompts:[] };
@@ -335,16 +356,17 @@
     d.querySelector('#cfYes').onclick=function(){close();onYes();};
   }
 
+  /* Synchronous on purpose: by the time this call returns, the write has
+     already landed — nothing async left in flight that a tab close could cut
+     off mid-way, unlike the previous IndexedDB-based persist(). */
   function persist(skipSync){
-    idbSet(data).then(function(ok){
-      if(!ok) console.warn('[idb] save failed');
-      render();
-      if(!skipSync) scheduleDriveSave();
-    }).catch(function(e){
-      console.error('[idb] save error:', e);
-      render();
-      if(!skipSync) scheduleDriveSave();
-    });
+    var ok=lsSet(data);
+    if(!ok){
+      console.warn('[ls] save failed — likely storage quota exceeded');
+      toast('⚠ 本機儲存空間不足,建議先「⬇ 匯出」備份');
+    }
+    render();
+    if(!skipSync) scheduleDriveSave();
   }
 
   /* ---------- render ---------- */
@@ -853,7 +875,7 @@
           data.prompts=mergePrompts(data.prompts,rp);
           normalize();
           lastSyncedAt=Date.now();
-          idbSet(data);
+          lsSet(data);
           render();
           if(JSON.stringify(data.prompts)!==before&&JSON.stringify(data.prompts)!==JSON.stringify(rp))scheduleDriveSave();
           return true;
@@ -997,53 +1019,42 @@
   /* ---------- boot ---------- */
   function withTimeout(p,ms){return Promise.race([p,new Promise(function(r){setTimeout(function(){r('__timeout');},ms);})]);}
 
-  function waitForMcp(attempts){
-    attempts=attempts||0;
-    if(attempts>20){
-      console.log('[boot] MCP not available after 10s, giving up');
-      return false;
+  /* One-time migration: earlier versions of this app stored data in an async
+     IndexedDB store, which could lose a just-added record if the tab closed
+     before the write finished. New saves go to localStorage (synchronous —
+     see persist()). On first boot after this change, pull over anything
+     still sitting in the old store so nothing already saved gets lost. */
+  function loadLocal(){
+    var ls=lsGet();
+    if(ls&&ls.prompts&&ls.prompts.length){
+      console.log('[boot] loaded', ls.prompts.length, 'prompts from localStorage');
+      return Promise.resolve(ls);
     }
-    if(window.claude&&window.claude.mcp){
-      console.log('[boot] MCP ready after', attempts*500, 'ms');
-      return true;
-    }
-    if(attempts===0)console.log('[boot] waiting for MCP...');
-    return new Promise(function(res){
-      setTimeout(function(){
-        res(waitForMcp(attempts+1));
-      },500);
+    console.log('[boot] localStorage empty, checking legacy IndexedDB store...');
+    return withTimeout(idbGet(),1500).then(function(saved){
+      if(saved&&saved!=='__timeout'&&saved.prompts&&saved.prompts.length){
+        console.log('[migrate] found', saved.prompts.length, 'prompts in old IndexedDB store, copying to localStorage');
+        lsSet(saved);
+        return saved;
+      }
+      return ls||{version:2,prompts:[]};
     });
   }
 
   render();renderSyncUI();
-  withTimeout(idbGet(),1500).then(function(saved){
-    console.log('[boot] idb load:', saved?'ok':'empty');
-    if(saved&&saved!=='__timeout'&&saved.prompts){
-      data=saved;
-      normalize();
-      render();
-    }
+  loadLocal().then(function(loaded){
+    data=loaded||{version:2,prompts:[]};
+    normalize();
+    render();
   }).then(function(){
     driveBusy=false;
     driveDirty=false;
-    console.log('[boot] checking if MCP is available...');
-    return waitForMcp();
-  }).then(function(mcpReady){
-    if(!mcpReady){
-      console.log('[boot] MCP not available');
-      driveState='no_mcp';
-      renderSyncUI();
-      return false;
-    }
-    console.log('[boot] MCP ready, discovering Google Drive...');
     return driveDiscover();
   }).then(function(ok){
     if(ok){
       console.log('[boot] Google Drive ready, loading from Drive...');
-      loadFromDrive().then(function(){
+      return loadFromDrive().then(function(){
         saveTextMirror();
-      }).catch(function(e){
-        console.error('[boot] drive load failed:', e);
       });
     }else{
       console.log('[boot] Google Drive not ready');
