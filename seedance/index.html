@@ -713,8 +713,18 @@
 
   function renderSyncUI(){
     var label=$('#syncLabel'),refresh=$('#btnRefresh');
-    var map={checking:['dot-off','檢查雲端連線中…'],no_mcp:['dot-off','僅存在這台裝置(此處不支援雲端同步)'],not_connected:['dot-warn','☁ 未連接 Google Drive,僅存本機'],needs_reauth:['dot-warn','⚠ Google Drive 需要重新授權'],selection_required:['dot-warn','⚠ 請選擇要用的 Google Drive 帳號'],sync_error:['dot-warn','⚠ 雲端同步暫時失敗,仍存本機'],ready:['dot-ok',driveBusy?'☁ 同步中…':(driveDirty?'☁ 即將同步…':('☁ 已同步'+(lastSyncedAt?' '+new Date(lastSyncedAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'')))]};
-    var m=map[driveState]||map.checking;label.innerHTML='<span class="dot '+m[0]+'"></span>'+m[1];refresh.style.display=(driveState==='ready')?'inline-block':'none';
+    var map={
+      checking:['dot-off','檢查雲端連線中…'],
+      no_mcp:['dot-warn','⚠ 此環境無法使用 Google Drive 同步'],
+      not_connected:['dot-warn','☁ 未連接 Google Drive,僅存本機'],
+      needs_reauth:['dot-warn','⚠ Google Drive 需要重新授權'],
+      selection_required:['dot-warn','⚠ 請選擇要用的 Google Drive 帳號'],
+      sync_error:['dot-warn','⚠ 雲端同步暫時失敗,仍存本機'],
+      ready:['dot-ok',driveBusy?'☁ 同步中…':(driveDirty?'☁ 即將同步…':('☁ 已同步'+(lastSyncedAt?' '+new Date(lastSyncedAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'')))]
+    };
+    var m=map[driveState]||map.checking;
+    label.innerHTML='<span class="dot '+m[0]+'"></span>'+m[1];
+    refresh.style.display=(driveState==='ready'||driveState==='no_mcp'||driveState==='sync_error')?'inline-block':'none';
   }
   function b64ToUtf8(b64){var bin=atob(b64),bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder('utf-8').decode(bytes);}
 
@@ -902,10 +912,42 @@
       saveToDrive();
     }
   });
-  $('#btnRefresh').onclick=function(){loadFromDrive();};
+  $('#btnRefresh').onclick=function(){
+    console.log('[sync] manual refresh requested');
+    if(driveState==='no_mcp'){
+      console.log('[sync] attempting to rediscover MCP...');
+      driveDiscover().then(function(ok){
+        if(ok)loadFromDrive();
+      });
+    }else if(driveState==='ready'){
+      loadFromDrive();
+    }else{
+      console.log('[sync] refresh skipped, state:', driveState);
+      toast('Google Drive 還未連接');
+    }
+  };
 
   /* ---------- boot ---------- */
   function withTimeout(p,ms){return Promise.race([p,new Promise(function(r){setTimeout(function(){r('__timeout');},ms);})]);}
+
+  function waitForMcp(attempts){
+    attempts=attempts||0;
+    if(attempts>20){
+      console.log('[boot] MCP not available after 10s, giving up');
+      return false;
+    }
+    if(window.claude&&window.claude.mcp){
+      console.log('[boot] MCP ready after', attempts*500, 'ms');
+      return true;
+    }
+    if(attempts===0)console.log('[boot] waiting for MCP...');
+    return new Promise(function(res){
+      setTimeout(function(){
+        res(waitForMcp(attempts+1));
+      },500);
+    });
+  }
+
   render();renderSyncUI();
   withTimeout(idbGet(),1500).then(function(saved){
     console.log('[boot] idb load:', saved?'ok':'empty');
@@ -917,14 +959,27 @@
   }).then(function(){
     driveBusy=false;
     driveDirty=false;
+    console.log('[boot] checking if MCP is available...');
+    return waitForMcp();
+  }).then(function(mcpReady){
+    if(!mcpReady){
+      console.log('[boot] MCP not available');
+      driveState='no_mcp';
+      renderSyncUI();
+      return false;
+    }
+    console.log('[boot] MCP ready, discovering Google Drive...');
     return driveDiscover();
   }).then(function(ok){
     if(ok){
+      console.log('[boot] Google Drive ready, loading from Drive...');
       loadFromDrive().then(function(){
         saveTextMirror();
       }).catch(function(e){
         console.error('[boot] drive load failed:', e);
       });
+    }else{
+      console.log('[boot] Google Drive not ready');
     }
   }).catch(function(e){
     console.error('[boot] error:', e);
