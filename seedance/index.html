@@ -320,6 +320,21 @@
   var toastTimer=null;
   function toast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.remove();},2200);}
 
+  /* Artifact 沙盒環境會封鎖 window.confirm(),自製確認彈窗取代 */
+  function confirmDialog(msg,onYes){
+    var d=document.createElement('div');
+    d.className='overlay top';
+    d.innerHTML='<div class="sheet" style="max-width:360px">'+
+      '<p style="margin:0 0 18px;font-size:.95rem;line-height:1.6">'+esc(msg)+'</p>'+
+      '<div class="row"><button class="btn ghost" id="cfNo">取消</button><button class="btn danger" id="cfYes" style="flex:1;background:var(--danger);color:#fff;border-color:var(--danger)">確定</button></div>'+
+    '</div>';
+    document.body.appendChild(d);
+    function close(){d.remove();}
+    d.onclick=function(e){if(e.target===d)close();};
+    d.querySelector('#cfNo').onclick=close;
+    d.querySelector('#cfYes').onclick=function(){close();onYes();};
+  }
+
   function persist(skipSync){
     idbSet(data).then(function(ok){
       if(!ok) console.warn('[idb] save failed');
@@ -421,7 +436,12 @@
     $('#close').onclick=closeModal;
     $('#copy').onclick=function(){copyText(p.prompt,this);};
     $('#edit').onclick=function(){openForm(p);};
-    $('#del').onclick=function(){if(!confirm('確定刪除這一條嗎?'))return;data.prompts=data.prompts.filter(function(x){return x.id!==p.id;});closeModal();persist();toast('已刪除');};
+    $('#del').onclick=function(){
+      confirmDialog('確定刪除這一條嗎？此動作無法復原。',function(){
+        data.prompts=data.prompts.filter(function(x){return x.id!==p.id;});
+        closeModal();persist();toast('已刪除');
+      });
+    };
   }
 
   function copyText(text,btn){
@@ -672,7 +692,22 @@
   searchEl.oninput=function(){query=this.value.trim().toLowerCase();render();};
 
   /* ---------- export / import ---------- */
-  $('#btnExport').onclick=function(){var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='seedance-提示詞備份.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);};
+  /* Artifact 沙盒環境會封鎖 <a download> 連結,改用「複製到剪貼簿」讓使用者自行貼到記事本/檔案保存 */
+  $('#btnExport').onclick=function(){
+    var json=JSON.stringify(data,null,2);
+    var d=document.createElement('div');
+    d.className='overlay top';
+    d.innerHTML='<div class="sheet">'+
+      '<h2>⬇ 匯出備份</h2>'+
+      '<p class="hint" style="margin-top:0">此環境無法直接下載檔案,請按下方按鈕複製全部備份文字,再貼到「記事本」App 存成 .json 檔,或貼到雲端筆記留存。</p>'+
+      '<textarea readonly style="width:100%;min-height:160px;font-size:.72rem;font-family:monospace;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text)">'+esc(json)+'</textarea>'+
+      '<div class="row"><button class="btn ghost" id="expClose">關閉</button><button class="btn" id="expCopy">複製全部備份文字</button></div>'+
+    '</div>';
+    document.body.appendChild(d);
+    d.onclick=function(e){if(e.target===d)d.remove();};
+    d.querySelector('#expClose').onclick=function(){d.remove();};
+    d.querySelector('#expCopy').onclick=function(){copyText(json,this);};
+  };
   $('#btnImport').onclick=function(){$('#fileImport').click();};
   $('#fileImport').onchange=function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var parsed=JSON.parse(rd.result);var incoming=Array.isArray(parsed)?parsed:(parsed.prompts||[]);data.prompts=mergePrompts(data.prompts,incoming);normalize();persist();toast('匯入完成,共 '+data.prompts.length+' 條');}catch(err){toast('檔案格式不對,無法匯入');}};rd.readAsText(f);e.target.value='';};
 
@@ -724,7 +759,7 @@
     };
     var m=map[driveState]||map.checking;
     label.innerHTML='<span class="dot '+m[0]+'"></span>'+m[1];
-    refresh.style.display=(driveState==='ready'||driveState==='no_mcp'||driveState==='sync_error')?'inline-block':'none';
+    refresh.style.display=(driveState!=='checking')?'inline-block':'none';
   }
   function b64ToUtf8(b64){var bin=atob(b64),bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder('utf-8').decode(bytes);}
 
@@ -803,7 +838,7 @@
         console.log('[drive] no files found');
         return false;
       }
-      console.log('[drive] loading latest:', latest.name);
+      console.log('[drive] loading latest:', latest.title);
       return window.claude.mcp.callTool(driveServer,'download_file_content',{fileId:latest.id}).then(function(dl){
         var b64=dl.payload&&dl.payload.content;
         if(!b64){
@@ -861,27 +896,39 @@
       console.log('[drive] save success, response:', res);
       driveDirty=false;
       lastSyncedAt=Date.now();
+      saveRetryCount=0;
       saveTextMirror();
     }).catch(function(err){
-      console.error('[drive] save error:', err, 'code:', err&&err.code, 'message:', err&&err.message);
-      if(err&&err.code==='needs_reauth'){
-        console.log('[drive] -> needs_reauth');
+      console.error('[drive] save error:', err, 'code:', err&&err.code, 'message:', err&&err.message, 'retryable:', err&&err.retryable);
+      driveDirty=true; /* keep pending until it actually succeeds */
+      var code=err&&err.code;
+      if(code==='needs_reauth'){
         driveState='needs_reauth';
-      }
-      else if(err&&err.code==='server_not_connected'){
-        console.log('[drive] -> not_connected');
+      } else if(code==='server_not_connected'){
         driveState='not_connected';
-      }
-      else {
-        console.log('[drive] -> sync_error (will retry)');
+      } else if(code==='selection_required'){
+        driveState='selection_required';
+      } else if(code==='not_granted'||code==='capability_disabled'||code==='capability_removed'){
+        driveState='no_mcp';
+      } else {
         driveState='sync_error';
-        driveDirty=true; /* retry later */
+      }
+      /* per contract: only auto-retry errors explicitly stamped retryable, at most once, after a short delay */
+      if(err&&err.retryable&&saveRetryCount<3){
+        saveRetryCount++;
+        var delay=err.retryAfterMs||4000;
+        console.log('[drive] retryable error, retry #'+saveRetryCount+' in '+delay+'ms');
+        clearTimeout(driveSaveTimer);
+        driveSaveTimer=setTimeout(saveToDrive,delay);
+      } else {
+        saveRetryCount=0;
       }
     }).then(function(){
       driveBusy=false;
       renderSyncUI();
     });
   }
+  var saveRetryCount=0;
   function scheduleDriveSave(){
     driveDirty=true;
     renderSyncUI();
@@ -913,18 +960,25 @@
     }
   });
   $('#btnRefresh').onclick=function(){
-    console.log('[sync] manual refresh requested');
-    if(driveState==='no_mcp'){
-      console.log('[sync] attempting to rediscover MCP...');
-      driveDiscover().then(function(ok){
-        if(ok)loadFromDrive();
+    console.log('[sync] manual refresh requested, current state:', driveState);
+    if(driveState==='ready'){
+      loadFromDrive().then(function(){
+        if(driveDirty)saveToDrive();
       });
-    }else if(driveState==='ready'){
-      loadFromDrive();
-    }else{
-      console.log('[sync] refresh skipped, state:', driveState);
-      toast('Google Drive 還未連接');
+      return;
     }
+    /* any non-ready state: this is a fresh user gesture, safe to retry discovery + a pending save */
+    saveRetryCount=0;
+    driveDiscover().then(function(ok){
+      if(ok){
+        toast('已重新連接 Google Drive');
+        return loadFromDrive().then(function(){
+          if(driveDirty)saveToDrive();
+        });
+      }else{
+        toast('Google Drive 仍未連接,請檢查授權設定');
+      }
+    });
   };
 
   /* ---------- boot ---------- */
