@@ -1025,7 +1025,7 @@
       return r;
     });
   }
-  var SYNC_THUMB_DIM=200, SYNC_THUMB_Q=0.45; /* small enough that dozens of images still stay well under any payload ceiling */
+  var SYNC_THUMB_DIM=300, SYNC_THUMB_Q=0.55; /* even at ~100 images this stays well under the ~1MB payload ceiling we hit before */
   function saveToDrive(){
     if(driveState!=='ready'||!driveDirty){
       console.log('[drive] saveToDrive skip: state='+driveState+' dirty='+driveDirty);
