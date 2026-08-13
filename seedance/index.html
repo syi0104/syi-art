@@ -183,7 +183,6 @@
         <div class="actions">
           <button class="iconbtn" id="btnExport" title="匯出備份">⬇ 匯出</button>
           <button class="iconbtn" id="btnImport" title="匯入備份">⬆ 匯入</button>
-          <input type="file" id="fileImport" accept="application/json">
         </div>
       </div>
       <div class="seg" id="typeSeg">
@@ -730,8 +729,36 @@
     d.querySelector('#expClose').onclick=function(){d.remove();};
     d.querySelector('#expCopy').onclick=function(){copyText(json,this);};
   };
-  $('#btnImport').onclick=function(){$('#fileImport').click();};
-  $('#fileImport').onchange=function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var parsed=JSON.parse(rd.result);var incoming=Array.isArray(parsed)?parsed:(parsed.prompts||[]);data.prompts=mergePrompts(data.prompts,incoming);normalize();persist();toast('匯入完成,共 '+data.prompts.length+' 條');}catch(err){toast('檔案格式不對,無法匯入');}};rd.readAsText(f);e.target.value='';};
+  /* 跟匯出對稱:直接貼上文字,而不是選檔案(Artifact 沙盒對檔案選取的支援也不穩定) */
+  $('#btnImport').onclick=function(){
+    var d=document.createElement('div');
+    d.className='overlay top';
+    d.innerHTML='<div class="sheet">'+
+      '<h2>⬆ 匯入備份</h2>'+
+      '<p class="hint" style="margin-top:0">把之前用「⬇ 匯出」複製的備份文字貼在下面,會自動合併進現有的記錄(不會覆蓋,只會補上沒有的)。</p>'+
+      '<textarea id="impText" placeholder="貼上備份文字…" style="width:100%;min-height:160px;font-size:.72rem;font-family:monospace;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text)"></textarea>'+
+      '<div class="row"><button class="btn ghost" id="impClose">取消</button><button class="btn" id="impGo">貼上並匯入</button></div>'+
+    '</div>';
+    document.body.appendChild(d);
+    d.onclick=function(e){if(e.target===d)d.remove();};
+    d.querySelector('#impClose').onclick=function(){d.remove();};
+    d.querySelector('#impGo').onclick=function(){
+      var text=d.querySelector('#impText').value.trim();
+      if(!text){toast('請先貼上備份文字');return;}
+      try{
+        var parsed=JSON.parse(text);
+        var incoming=Array.isArray(parsed)?parsed:(parsed.prompts||[]);
+        var before=data.prompts.length;
+        data.prompts=mergePrompts(data.prompts,incoming);
+        normalize();persist();
+        d.remove();
+        toast('匯入完成,共 '+data.prompts.length+' 條('+(data.prompts.length-before>=0?'+':'')+(data.prompts.length-before)+')');
+      }catch(err){
+        console.error('[import] parse error:',err);
+        toast('文字格式不對,請確認是完整貼上備份文字');
+      }
+    };
+  };
 
   function mergePrompts(a,b){
     var m=new Map();
@@ -955,12 +982,17 @@
     });
   }
   var saveRetryCount=0;
+  /* Kept short on purpose: other devices (e.g. the mobile app) only ever see
+     new content via Drive, since each device/webview has its own separate
+     local storage. A short delay here (instead of batching for longer)
+     shrinks the window where a phone reopened right after a web edit would
+     still see the old cloud snapshot. */
   function scheduleDriveSave(){
     driveDirty=true;
     renderSyncUI();
     if(driveState!=='ready'&&driveState!=='sync_error')return;
     clearTimeout(driveSaveTimer);
-    driveSaveTimer=setTimeout(saveToDrive,1500);
+    driveSaveTimer=setTimeout(saveToDrive,400);
   }
   /* Safety net: if a save failed and the viewer doesn't edit again, driveDirty
      would otherwise sit unsynced forever. Quietly sweep every 30s and retry —
