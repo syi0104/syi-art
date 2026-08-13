@@ -1,0 +1,867 @@
+<title>Seedance 提示詞庫</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{
+    /* light — cream & white with coffee accent */
+    --bg:#f4efe7; --card:#fffdf9; --card2:#efe7da; --border:#e4d9c7;
+    --text:#3b2f26; --sub:#8a7a68; --faint:#bcac96;
+    --accent:#6f4e37; --accent-ink:#fdf8f1;
+    --chip-bg:#e8dcc9; --chip-ink:#5c4632;
+    --ok:#5c7c53; --warn:#b7793a; --danger:#bd4d3d;
+    --overlay:rgba(40,30,20,.5); --shadow:0 1px 3px rgba(60,40,20,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#1c1712; --card:#26201a; --card2:#2e271f; --border:#3d3427;
+    --text:#efe6d8; --sub:#a99a85; --faint:#6d6151;
+    --accent:#c69c6d; --accent-ink:#231a10;
+    --chip-bg:#392e21; --chip-ink:#dcc29c;
+    --ok:#8faf7e; --warn:#d3a25f; --danger:#e07a68;
+    --overlay:rgba(0,0,0,.66); --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1c1712; --card:#26201a; --card2:#2e271f; --border:#3d3427;
+      --text:#efe6d8; --sub:#a99a85; --faint:#6d6151;
+      --accent:#c69c6d; --accent-ink:#231a10;
+      --chip-bg:#392e21; --chip-ink:#dcc29c;
+      --ok:#8faf7e; --warn:#d3a25f; --danger:#e07a68;
+      --overlay:rgba(0,0,0,.66); --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  button,input,textarea,select{font-family:inherit}
+  button{cursor:pointer}
+
+  .wrap{max-width:900px;margin:0 auto;padding:0 14px calc(120px + env(safe-area-inset-bottom))}
+
+  header{
+    position:sticky;top:0;z-index:30;background:var(--bg);
+    padding:16px 14px 10px;margin:0 -14px;border-bottom:1px solid var(--border);
+  }
+  header .inner{max-width:900px;margin:0 auto}
+  .titlerow{display:flex;align-items:baseline;gap:10px}
+  .titlerow h1{margin:0;font-size:1.2rem;font-weight:700;letter-spacing:.4px}
+  .titlerow h1 .dot{color:var(--accent)}
+  .titlerow .count{color:var(--sub);font-size:.8rem;font-variant-numeric:tabular-nums}
+  .iconbtn{background:var(--card);border:1px solid var(--border);color:var(--sub);border-radius:9px;padding:5px 10px;font-size:.78rem;white-space:nowrap}
+  .iconbtn:active{transform:scale(.96)}
+
+  .subrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;flex-wrap:wrap}
+  .actions{display:flex;gap:7px;flex-shrink:0}
+  .sync{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;font-size:.76rem;color:var(--sub)}
+  .sync>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sync .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+  .dot-ok{background:var(--ok)} .dot-warn{background:var(--warn)} .dot-off{background:var(--faint)}
+  .sync button{background:none;border:none;color:var(--accent);font-size:.76rem;padding:2px 4px}
+
+  .seg{display:inline-flex;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:3px;margin-top:11px;gap:2px}
+  .seg button{border:none;background:none;color:var(--sub);font-size:.86rem;padding:7px 16px;border-radius:8px;font-weight:500}
+  .seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+
+  .search{display:flex;align-items:center;gap:8px;margin-top:11px;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:9px 13px}
+  .search input{border:none;background:none;outline:none;flex:1;font-size:1rem;color:var(--text)}
+  .search input::placeholder{color:var(--faint)}
+
+  .tagbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .tagbar .tag{font-size:.78rem;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--sub);user-select:none}
+  .tagbar .tag.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .tagbar .tag .c{opacity:.6;font-size:.7rem;margin-left:3px}
+  .tagbar .clear{color:var(--sub);text-decoration:underline;font-size:.76rem;padding:4px 2px;background:none;border:none}
+
+  main{padding-top:14px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  @media(min-width:560px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0;color:inherit;position:relative}
+  .card:active{transform:scale(.985)}
+  .thumbwrap{position:relative}
+  .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--card2);display:block}
+  .thumb.ph{display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:.78rem;padding:10px;text-align:center}
+  .badge{position:absolute;top:8px;left:8px;font-size:.68rem;padding:2px 8px;border-radius:11px;background:rgba(0,0,0,.55);color:#fff;backdrop-filter:blur(3px)}
+  .cbody{padding:10px 11px 12px}
+  .cbody .p{font-size:.84rem;color:var(--text);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .ctags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .ctags span{font-size:.68rem;color:var(--chip-ink);background:var(--chip-bg);padding:2px 8px;border-radius:11px}
+  .empty{color:var(--sub);text-align:center;padding:56px 18px;font-size:.92rem;line-height:1.8}
+
+  .fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-ink);border:none;font-size:28px;line-height:1;box-shadow:0 5px 16px rgba(0,0,0,.3);z-index:40;display:flex;align-items:center;justify-content:center}
+  .fab:active{transform:scale(.94)}
+  .fab2{position:fixed;right:18px;bottom:calc(88px + env(safe-area-inset-bottom));height:44px;padding:0 16px;border-radius:22px;background:var(--card);color:var(--accent);border:1px solid var(--accent);font-size:.86rem;font-weight:600;box-shadow:var(--shadow);z-index:40;display:flex;align-items:center;gap:6px}
+  .fab2:active{transform:scale(.96)}
+
+  .overlay{position:fixed;inset:0;background:var(--overlay);z-index:50;display:flex;align-items:flex-end;justify-content:center;padding:0}
+  @media(min-width:600px){.overlay{align-items:center;padding:20px}}
+  .overlay.top{z-index:60}
+  .sheet{background:var(--bg);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+  @media(min-width:600px){.sheet{border-radius:18px}}
+  .sheet h2{font-size:1.05rem;margin:0 0 14px}
+  .sheet .big{width:100%;max-height:52vh;object-fit:contain;background:#000;border-radius:12px;display:block}
+  .sheet .bigph{aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;color:var(--faint);background:var(--card2);border-radius:12px;font-size:.85rem}
+  .meta{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-size:.78rem;margin:12px 2px 8px}
+  .meta a{color:var(--accent)}
+  .meta .kind{color:var(--chip-ink);background:var(--chip-bg);padding:2px 9px;border-radius:11px}
+  .promptbox{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 13px;font-size:.95rem;line-height:1.75;white-space:pre-wrap;user-select:text;-webkit-user-select:text}
+  .stags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .stags span{font-size:.78rem;color:var(--chip-ink);background:var(--chip-bg);padding:4px 10px;border-radius:14px}
+  .note{margin-top:12px;color:var(--sub);font-size:.86rem;border-left:2px solid var(--border);padding-left:11px;white-space:pre-wrap}
+  .flabel{font-weight:600;font-size:.92rem;margin:16px 0 7px}
+  .fdna{font-size:.88rem;line-height:1.85;color:var(--text)}
+  .fdna b{color:var(--accent)}
+  .discrow{display:flex;align-items:center;gap:9px;font-size:.86rem;color:var(--text);background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:14px;cursor:pointer}
+  .discrow input{width:19px;height:19px;flex:0 0 auto;accent-color:var(--accent)}
+  .snipwrap{margin:-6px 0 14px}
+  .sniprow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px}
+  .snipg{font-size:.72rem;color:var(--sub);min-width:40px}
+  .snip,.subj{font-size:.78rem;padding:5px 10px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--accent)}
+  .snip:active,.subj:active{transform:scale(.95)}
+  .row{display:flex;gap:10px;margin-top:12px}
+  .btn{flex:1;padding:12px;border-radius:11px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-size:.95rem;font-weight:600}
+  .btn:active{transform:scale(.98)}
+  .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
+  .btn.ghost{background:var(--card);color:var(--sub);border-color:var(--border);flex:0 0 auto;font-weight:500}
+  .btn.danger{background:var(--card);color:var(--danger);border-color:var(--border);flex:0 0 auto;font-weight:500}
+
+  .field{margin-bottom:13px;position:relative}
+  .field label{display:block;font-size:.76rem;color:var(--sub);margin-bottom:5px}
+  .field textarea,.field input[type=text],.field input[type=date],.field input[type=url]{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem;outline:none}
+  .field textarea{min-height:120px;resize:vertical;line-height:1.7}
+  .field textarea:focus,.field input:focus{border-color:var(--accent)}
+  .typepick{display:flex;gap:8px}
+  .typepick button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:.92rem;font-weight:500}
+  .typepick button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+  .imgpick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1.5px dashed var(--border);border-radius:12px;padding:16px;background:var(--card2);color:var(--sub);font-size:.9rem}
+  .imgprev{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+  .imgprev img{width:100%;max-height:220px;object-fit:contain;background:#000;display:block}
+  .imgprev .x{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:8px;padding:5px 9px;font-size:.8rem}
+  input[type=file]{display:none}
+
+  .tagedit{display:flex;flex-wrap:wrap;gap:6px}
+  .tagedit .t{font-size:.8rem;padding:5px 11px;border-radius:16px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:5px}
+  .tagedit .t .rm{opacity:.8;font-weight:700}
+  .taginput{display:flex;gap:8px;margin-top:8px}
+  .taginput input{flex:1;padding:9px 11px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.95rem;outline:none}
+  .taginput button{border:1px solid var(--border);background:var(--card);color:var(--accent);border-radius:10px;padding:0 14px;font-size:.9rem;white-space:nowrap}
+  .hint{font-size:.76rem;color:var(--sub);margin-top:6px;line-height:1.6}
+  .phrasebar{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .phrasechip{font-size:.8rem;padding:6px 12px;border-radius:14px;border:1px dashed var(--accent);background:var(--card2);color:var(--accent);text-align:left;max-width:100%;font-weight:600}
+  .phrasechip:active{transform:scale(.97)}
+  .buildbtn{width:100%;margin-top:2px;border:1px dashed var(--accent);background:var(--card2);color:var(--accent);border-radius:10px;padding:11px;font-size:.9rem;font-weight:600}
+
+  /* builder */
+  .bgroup{margin-bottom:14px}
+  .bgroup>.lab{font-size:.78rem;color:var(--sub);margin-bottom:7px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chips button{font-size:.82rem;padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+  .chips button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+  .preview{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 13px;font-size:.92rem;line-height:1.7;color:var(--text);min-height:52px;white-space:pre-wrap}
+  .preview.empty-p{color:var(--faint)}
+
+  .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:.85rem;z-index:80;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:88vw;text-align:center}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="inner">
+      <div class="titlerow">
+        <h1>Seedance 提示詞庫<span class="dot">.</span></h1>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="subrow">
+        <div class="sync" id="syncBar">
+          <span id="syncLabel"><span class="dot dot-off"></span>啟動中…</span>
+          <button id="btnRefresh" style="display:none">🔄 重新載入</button>
+        </div>
+        <div class="actions">
+          <button class="iconbtn" id="btnExport" title="匯出備份">⬇ 匯出</button>
+          <button class="iconbtn" id="btnImport" title="匯入備份">⬆ 匯入</button>
+          <input type="file" id="fileImport" accept="application/json">
+        </div>
+      </div>
+      <div class="seg" id="typeSeg">
+        <button data-t="all" class="on">全部</button>
+        <button data-t="video">🎬 影片</button>
+        <button data-t="image">🖼 圖片</button>
+      </div>
+      <div class="search">
+        <span>🔍</span>
+        <input type="text" id="search" placeholder="搜尋提示詞或標籤…" autocomplete="off">
+      </div>
+      <div class="tagbar" id="tagbar"></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" style="display:none"></div>
+  </main>
+</div>
+
+<button class="fab2" id="btnBuilder" aria-label="提示詞產生器">🧩 產生器</button>
+<button class="fab" id="btnAdd" aria-label="新增提示詞">＋</button>
+<div id="modalArea"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- storage: IndexedDB single-object kv ---------- */
+  var IDB_NAME='seedance-db', IDB_STORE='kv', IDB_KEY='data';
+  function idbOpen(){return new Promise(function(res,rej){var r=indexedDB.open(IDB_NAME,1);r.onupgradeneeded=function(){r.result.createObjectStore(IDB_STORE);};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+  function idbGet(){return idbOpen().then(function(db){return new Promise(function(res){try{var tx=db.transaction(IDB_STORE,'readonly');var g=tx.objectStore(IDB_STORE).get(IDB_KEY);g.onsuccess=function(){res(g.result||null);};g.onerror=function(){res(null);};}catch(e){res(null);}});}).catch(function(){return null;});}
+  function idbSet(v){return idbOpen().then(function(db){return new Promise(function(res){try{var tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,IDB_KEY);tx.oncomplete=function(){res(true);};tx.onerror=function(){res(false);};}catch(e){res(false);}});}).catch(function(){return false;});}
+
+  /* ---------- data ---------- */
+  var data={ version:2, prompts:[] };
+  var query='', activeTags=new Set(), viewType='all';
+
+  function normalize(){
+    data.prompts.forEach(function(p){ if(p.type!=='image') p.type=p.type||'video'; });
+  }
+
+  /* ---------- auto-tag dictionary ---------- */
+  var TAG_RULES=[
+    /* —— 主題 / 內容(優先,排最前面) —— */
+    ['vlog',['vlog','日常','一天的生活','生活紀錄','生活记录','記錄一天','记录一天','紀錄一天']],
+    ['沉浸感',['沉浸感','第一人稱','第一人称','沉浸']],
+    ['直式9:16',['9:16','直式','豎屏','竖屏','直幅']],
+    ['橫式16:9',['16:9','橫式','橫屏','宽屏','寬屏']],
+    ['多場景',['包含起床','一整天','記錄一天','记录一天','多個場景','多个场景','分鏡','分镜','一天的生活','首先','然後','然后','镜头 2','鏡頭 2','镜头2','鏡頭2']],
+    ['魔法',['魔法','咒語','咒语','施法','魔杖','遺忘咒','遗忘咒','obliviate','魔藥','魔药','巫術','巫术']],
+    ['奇幻',['奇幻','魔幻','fantasy','異世界','异世界']],
+    ['霍格華茲',['霍格','hogwarts','魔法學校','魔法学校']],
+    ['哈利波特',['哈利波特','harry potter','雷文克勞','雷文克劳','葛萊分多','格兰芬多','史萊哲林','斯莱特林','赫夫帕夫','赫奇帕奇','巫師','巫师','女巫','掃帚','扫帚']],
+    ['迪士尼',['迪士尼','disney','迪斯尼']],
+    ['樂園',['樂園','乐园','主題樂園','主题乐园','遊樂園','游乐园','遊樂設施','游乐设施','園區','园区']],
+    ['雲霄飛車',['雲霄飛車','云霄飞车','過山車','过山车','雲宵飛車']],
+    ['煙火',['煙火','烟火','煙花','烟花','焰火']],
+    ['公主',['公主','睡美人','白雪公主','灰姑娘','人魚公主','美人鱼']],
+    ['城堡',['城堡']],
+    ['拍照',['拍照','自拍','合照','合影','打卡']],
+    ['化妝',['化妝','化妆','妝容','妆容','美妝','美妆','上妝','上妆']],
+    ['旅遊',['旅遊','旅游','出遊','出游','景點','景点','之旅','攻略','旅行','打卡']],
+    ['校園',['校園','校园','學院','学院','上課','上课','教室','走廊','同學','同学','學生','学生']],
+    ['用餐',['吃飯','吃饭','用餐','大廳','大厅','餐廳','餐厅','食堂']],
+    ['AI角色',['ai人物','ai角色','ai模型','ai人物模型','非真人','虛擬人物','虚拟人物','3d角色','數字人','数字人','ai爱豆','ai愛豆','虛擬偶像','虚拟偶像','ai生成','虛擬生成','虚拟生成']],
+    ['cosplay',['cosplay','角色扮演','coser']],
+    ['產品',['產品','产品','商品','開箱','开箱','廣告','广告']],
+    ['片場日常',['片場','片场','花絮','幕後','幕后','劇組','剧组','拍戲','拍戏','收工','片场纪实','片場紀實']],
+    ['反差',['反差','秒切','一秒入戲','一秒入戏','入戲','入戏','切換狀態','切换状态']],
+    ['古裝',['古裝','古装','古風','古风','宮牆','宫墙','織金','织金','大氅','髮髻','发髻','步搖','步摇','花鈿','花钿']],
+    ['惡毒女配',['惡毒女配','恶毒女配','女配','疯批','瘋批','惡毒','恶毒','反派']],
+    ['打戲',['打戲','打戏','巴掌','對手戲','对手戏','動作戲','动作戏']],
+    ['演技',['演技','演員','演员']],
+    ['變裝',['變裝','变装','換裝','换装','一秒換裝','一秒换装','變身','变身']],
+    ['漢服',['漢服','汉服','唐風','唐风','宋制','齊胸','齐胸','齊腰','齐腰','襦裙','交領','交领','褙子']],
+    ['寵物',['狗狗','小狗','貓咪','猫咪','寵物','宠物','汪汪','狗拍']],
+    ['明星',['明星','女明星','爱豆','愛豆','偶像','idol','演唱會','演唱会','粉絲','粉丝','簽名','签名','品牌活动','品牌活動','代言','紅毯','红毯']],
+    ['舞台',['舞台','舞臺','打歌','應援','应援','出道','演唱會舞台','演唱会舞台','女團','女团','男團','男团']],
+    ['直拍',['直拍','fancam','fanchant','打歌節目','打歌节目','mcountdown','音樂節目','音乐节目','音樂銀行','music show']],
+    ['韓系',['韓系','韩系','k-pop','kpop','ins風','ins风','韓風','韩风']],
+    ['自拍視角',['自拍視角','自拍视角','主視角','主视角','第一人稱視角']],
+    ['第三視角',['第三視角','第三视角','第三人稱','第三人称']],
+    /* —— 運鏡 —— */
+    ['推軌',['推軌','推近','推鏡','向前推','緩緩推']],['拉遠',['拉遠','後拉','拉開','向後']],
+    ['環繞',['環繞','旋轉','圍繞','繞圈','360']],['俯視',['俯視','俯拍','俯瞰','由上往下','由上而下','鳥瞰']],
+    ['仰視',['仰視','仰拍','由下往上','仰角']],['航拍',['航拍','空拍','無人機','高空']],
+    ['手持',['手持','手搖','晃動']],['跟拍',['跟拍','跟隨','追蹤鏡頭']],
+    ['特寫',['特寫','近景','大特寫','臉部']],['遠景',['遠景','全景','廣角','大場景']],
+    ['慢動作',['慢動作','慢鏡','升格']],['縮時',['縮時','延時']],
+    ['人物',['女子','女生','女孩','男子','男生','男孩','人物','女人','男人','少女','少年']],
+    ['兒童',['兒童','小孩','孩子','小女孩','小男孩','嬰兒']],['動物',['貓','狗','鳥','馬','動物','老虎','獅子','兔','魚','龍']],
+    ['風景',['風景','山脈','山峰','高山','群山','山谷','大海','海邊','森林','湖泊','湖面','天空','草原','沙漠','田野']],['城市',['城市','街道','都市','大樓','馬路','霓虹街','巷弄','老街']],
+    ['食物',['食物','美食','蛋糕','咖啡','料理','甜點','雪糕','冰淇淋','霜淇淋','飲料','冰品']],['花卉',['花朵','花海','玫瑰','櫻花','花田','鮮花','百花']],
+    ['水',['水面','水下','水花','海浪','瀑布','河流','溪流','水中']],['雨景',['雨中','大雨','傾盆','雨水','雨滴','下雨']],
+    ['雪景',['雪地','下雪','雪花','積雪','雪山','白雪紛飛']],['霧',['濃霧','水霧','薄霧','煙霧','雲霧']],
+    ['夜晚',['夜','夜晚','深夜','夜景','月光']],['黃昏',['黃昏','日落','夕陽','日出','清晨','晨光']],
+    ['逆光',['逆光','背光','剪影']],['霓虹',['霓虹','螢光','發光','燈光閃爍']],
+    ['冷色調',['冷色','藍色調','冷藍','青色調']],['暖色調',['暖色','金色調','橙色','暖黃','暖金']],
+    ['高對比',['高對比','強烈對比','明暗對比']],['低飽和',['低飽和','柔和色']],
+    ['空靈',['空靈','飄渺','縹緲','靜謐','寧靜']],['孤獨',['孤獨','寂寞','孤單','一個人']],
+    ['夢幻',['夢幻','夢境','奇幻','唯美']],['浪漫',['浪漫','溫馨','甜蜜']],
+    ['神秘',['神秘','詭異','陰森','懸疑']],['史詩',['史詩','宏大','壯闊','磅礴']],
+    ['電影感',['電影感','電影級','cinematic','電影質感']],['寫實',['寫實','真實','逼真','超寫實','質感']],
+    ['賽博龐克',['賽博','cyberpunk','未來都市','科幻']],['復古',['復古','懷舊','年代感','膠片','底片']],
+    ['水墨',['水墨','國畫','潑墨']],['動畫',['動畫','卡通','二次元','手繪','插畫']],
+    ['黑白',['黑白','單色']],['對稱',['對稱','置中構圖']],['淺景深',['淺景深','景深','散景','虛化']],
+    ['4K',['4K','8K','高畫質','超高清','高解析']]
+  ];
+  function autoTags(text){ if(!text)return[]; var t=text.toLowerCase(),out=[]; TAG_RULES.forEach(function(r){for(var i=0;i<r[1].length;i++){if(t.indexOf(r[1][i].toLowerCase())!==-1){out.push(r[0]);break;}}}); return out; }
+  function allExistingTags(){ var s=new Set(); data.prompts.forEach(function(p){(p.tags||[]).forEach(function(t){s.add(t);});}); return Array.from(s); }
+  var PINNED_TAGS=['AI角色']; /* 常用標籤:永遠顯示在建議最前面 */
+  var PINNED_PHRASES=['图片非真人，是ai人物模型。']; /* 常用句:一鍵加到提示詞最上面 */
+
+  /* ---------- image compression ---------- */
+  function compressImage(file){
+    return new Promise(function(res,rej){
+      var url=URL.createObjectURL(file),img=new Image();
+      img.onload=function(){URL.revokeObjectURL(url);var maxDim=440,w=img.naturalWidth,h=img.naturalHeight;var s=Math.min(1,maxDim/Math.max(w,h));var cw=Math.max(1,Math.round(w*s)),ch=Math.max(1,Math.round(h*s));var c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);try{res(c.toDataURL('image/jpeg',0.62));}catch(e){rej(e);}};
+      img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('讀取圖片失敗'));};
+      img.src=url;
+    });
+  }
+
+  /* ---------- helpers ---------- */
+  var $=function(s,r){return (r||document).querySelector(s);};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+  function today(){return new Date().toISOString().slice(0,10);}
+  function kindLabel(t){return t==='image'?'🖼 圖片':'🎬 影片';}
+  var modalArea=$('#modalArea');
+  function closeModal(){modalArea.innerHTML='';}
+  var toastTimer=null;
+  function toast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.remove();},2200);}
+
+  function persist(skipSync){
+    idbSet(data).then(function(ok){
+      if(!ok) console.warn('[idb] save failed');
+      render();
+      if(!skipSync) scheduleDriveSave();
+    }).catch(function(e){
+      console.error('[idb] save error:', e);
+      render();
+      if(!skipSync) scheduleDriveSave();
+    });
+  }
+
+  /* ---------- render ---------- */
+  var grid=$('#grid'),empty=$('#empty'),tagbar=$('#tagbar'),countEl=$('#count'),searchEl=$('#search');
+
+  function inType(p){ return viewType==='all' || (p.type||'video')===viewType; }
+
+  function buildTagbar(){
+    var counts={};
+    data.prompts.filter(inType).forEach(function(p){(p.tags||[]).forEach(function(t){counts[t]=(counts[t]||0)+1;});});
+    // 平常不顯示標籤;只顯示「已選的標籤」+「搜尋時符合關鍵字的標籤」,保持首頁乾淨
+    var show=[];
+    activeTags.forEach(function(t){ if(show.indexOf(t)===-1) show.push(t); });
+    if(query){
+      Object.keys(counts).filter(function(t){ return !activeTags.has(t) && t.toLowerCase().indexOf(query)!==-1; })
+        .sort(function(a,b){ return counts[b]-counts[a]; }).forEach(function(t){ show.push(t); });
+    }
+    tagbar.innerHTML='';
+    tagbar.style.display=show.length?'flex':'none';
+    if(!show.length) return;
+    show.forEach(function(t){
+      var b=document.createElement('button');b.className='tag'+(activeTags.has(t)?' on':'');
+      b.innerHTML=esc(t)+'<span class="c">'+(counts[t]||0)+'</span>';
+      b.onclick=function(){
+        if(activeTags.has(t)){ activeTags.delete(t); }
+        else { activeTags.add(t); query=''; searchEl.value=''; }
+        render();
+      };
+      tagbar.appendChild(b);
+    });
+    if(activeTags.size){var c=document.createElement('button');c.className='clear';c.textContent='清除篩選';c.onclick=function(){activeTags.clear();render();};tagbar.appendChild(c);}
+  }
+
+  function matches(p){
+    if(!inType(p)) return false;
+    for(var t of activeTags){ if(!(p.tags||[]).includes(t)) return false; }
+    if(query){var hay=((p.prompt||'')+' '+(p.tags||[]).join(' ')+' '+(p.note||'')).toLowerCase();if(hay.indexOf(query)===-1)return false;}
+    return true;
+  }
+
+  function render(){
+    buildTagbar();
+    var typed=data.prompts.filter(inType);
+    var list=data.prompts.filter(matches).slice().sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
+    countEl.textContent=typed.length? (list.length+' / '+typed.length+' 條'):'';
+    grid.innerHTML='';
+    if(!list.length){
+      empty.style.display='block';
+      empty.innerHTML=typed.length? '找不到符合的提示詞。' : '這裡還沒有東西。<br>點右下角 ＋ 加第一條(可選影片或圖片)。';
+      return;
+    }
+    empty.style.display='none';
+    list.forEach(function(p){
+      var card=document.createElement('button');card.className='card';card.type='button';
+      var badge='<span class="badge">'+kindLabel(p.type)+'</span>';
+      var thumb=p.image?('<div class="thumbwrap"><img class="thumb" src="'+p.image+'" alt="" loading="lazy">'+badge+'</div>')
+                       :('<div class="thumbwrap"><div class="thumb ph">尚無截圖</div>'+badge+'</div>');
+      var tags=(p.tags||[]).slice(0,4).map(function(t){return '<span>'+esc(t)+'</span>';}).join('');
+      card.innerHTML=thumb+'<div class="cbody"><p class="p">'+esc(p.prompt)+'</p><div class="ctags">'+tags+'</div></div>';
+      card.onclick=function(){openDetail(p.id);};
+      grid.appendChild(card);
+    });
+  }
+
+  /* ---------- type segmented ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('#typeSeg button'),function(b){
+    b.onclick=function(){
+      viewType=b.getAttribute('data-t');
+      Array.prototype.forEach.call(document.querySelectorAll('#typeSeg button'),function(x){x.classList.toggle('on',x===b);});
+      activeTags.clear(); render();
+    };
+  });
+
+  /* ---------- detail ---------- */
+  function openDetail(id){
+    var p=data.prompts.find(function(x){return x.id===id;});
+    if(!p)return;
+    var big=p.image?'<img class="big" src="'+p.image+'" alt="">':'<div class="bigph">尚無截圖</div>';
+    var tags=(p.tags||[]).map(function(t){return '<span>'+esc(t)+'</span>';}).join('');
+    modalArea.innerHTML=
+      '<div class="overlay" id="ov"><div class="sheet">'+big+
+        '<div class="meta"><span class="kind">'+kindLabel(p.type)+'</span></div>'+
+        '<div class="promptbox">'+esc(p.prompt)+'</div>'+
+        '<div class="row"><button class="btn" id="copy">複製提示詞</button><button class="btn ghost" id="edit">編輯</button></div>'+
+        (tags?'<div class="stags">'+tags+'</div>':'')+
+        '<div class="row"><button class="btn danger" id="del">刪除這一條</button><button class="btn ghost" id="close">關閉</button></div>'+
+      '</div></div>';
+    $('#ov').onclick=function(e){if(e.target.id==='ov')closeModal();};
+    $('#close').onclick=closeModal;
+    $('#copy').onclick=function(){copyText(p.prompt,this);};
+    $('#edit').onclick=function(){openForm(p);};
+    $('#del').onclick=function(){if(!confirm('確定刪除這一條嗎?'))return;data.prompts=data.prompts.filter(function(x){return x.id!==p.id;});closeModal();persist();toast('已刪除');};
+  }
+
+  function copyText(text,btn){
+    function done(){var o=btn.textContent;btn.textContent='已複製 ✓';btn.classList.add('copied');setTimeout(function(){btn.textContent=o;btn.classList.remove('copied');},1500);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){legacyCopy(text,done);});}else legacyCopy(text,done);
+  }
+  function legacyCopy(text,done){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);done();}
+
+  /* ---------- add / edit form ---------- */
+  function openForm(existing,prefill){
+    var isEdit=!!existing;
+    var draft={
+      id:isEdit?existing.id:uid(), type:isEdit?(existing.type||'video'):(viewType==='image'?'image':'video'),
+      image:isEdit?(existing.image||''):'',
+      prompt:isEdit?existing.prompt:'', tags:isEdit?(existing.tags||[]).slice():[]
+    };
+    if(!isEdit&&prefill){ if(prefill.type)draft.type=prefill.type; if(prefill.prompt)draft.prompt=prefill.prompt; }
+    modalArea.innerHTML=
+      '<div class="overlay" id="ov"><div class="sheet">'+
+        '<h2>'+(isEdit?'編輯提示詞':'新增提示詞')+'</h2>'+
+        '<div class="field"><label>類型</label><div class="typepick" id="typePick">'+
+          '<button type="button" data-t="video">🎬 影片</button><button type="button" data-t="image">🖼 圖片</button></div></div>'+
+        '<div class="field"><label>截圖(幫你回想畫面)</label><div id="imgSlot"></div><input type="file" id="fileImg" accept="image/*"></div>'+
+        '<div class="field"><label>提示詞</label>'+
+          '<textarea id="fPrompt" placeholder="貼上從 Seedance 複製的提示詞…">'+esc(draft.prompt)+'</textarea>'+
+          '<div class="phrasebar" id="phraseBar"></div>'+
+          '<div class="hint">貼上後點「自動抓標籤」讓我挑重點詞。想從零產生一段?用右下角的 🧩 產生器。</div></div>'+
+        '<div class="field"><label>標籤</label><div class="tagedit" id="tagEdit"></div>'+
+          '<div class="taginput"><input type="text" id="tagInput" placeholder="自己加標籤,按 Enter" autocomplete="off"><button type="button" id="btnAutoTag">自動抓標籤</button></div>'+
+          '<div class="hint" id="tagSug"></div></div>'+
+        '<div class="row"><button class="btn ghost" id="cancel">取消</button><button class="btn" id="save">'+(isEdit?'儲存修改':'儲存')+'</button></div>'+
+      '</div></div>';
+
+    function renderType(){Array.prototype.forEach.call(document.querySelectorAll('#typePick button'),function(b){b.classList.toggle('on',b.getAttribute('data-t')===draft.type);});}
+    renderType();
+    Array.prototype.forEach.call(document.querySelectorAll('#typePick button'),function(b){b.onclick=function(){draft.type=b.getAttribute('data-t');renderType();};});
+
+    function renderImg(){
+      var slot=$('#imgSlot');
+      if(draft.image){slot.innerHTML='<div class="imgprev"><img src="'+draft.image+'" alt=""><button type="button" class="x" id="rmImg">✕ 移除</button></div>';$('#rmImg').onclick=function(){draft.image='';renderImg();};}
+      else{slot.innerHTML='<button type="button" class="imgpick" id="pickImg">＋ 從相簿選一張截圖</button>';$('#pickImg').onclick=function(){$('#fileImg').click();};}
+    }
+    renderImg();
+    $('#fileImg').onchange=function(e){var f=e.target.files[0];if(!f)return;compressImage(f).then(function(u){draft.image=u;renderImg();}).catch(function(){toast('這張圖讀取失敗,換一張試試');});e.target.value='';};
+
+    (function renderPhrases(){
+      var pb=$('#phraseBar'); if(!pb)return;
+      PINNED_PHRASES.forEach(function(ph){
+        var b=document.createElement('button');b.type='button';b.className='phrasechip';
+        b.textContent='⬆ 置頂加:'+ph;
+        b.onclick=function(){
+          var ta=$('#fPrompt'),cur=ta.value;
+          if(cur.indexOf(ph)!==-1){toast('這句已經在裡面了');return;}
+          ta.value=ph+(cur?'\n'+cur:'');toast('已加到最上面 ✓');
+        };
+        pb.appendChild(b);
+      });
+    })();
+
+    function renderTags(){
+      var te=$('#tagEdit');te.innerHTML='';
+      if(!draft.tags.length){te.innerHTML='<span class="hint" style="margin:0">還沒有標籤</span>';}
+      draft.tags.forEach(function(t){var el=document.createElement('span');el.className='t';el.innerHTML=esc(t)+' <span class="rm">✕</span>';el.onclick=function(){draft.tags=draft.tags.filter(function(x){return x!==t;});renderTags();};te.appendChild(el);});
+    }
+    renderTags();
+    function addTag(t){t=(t||'').trim();if(!t)return;if(!draft.tags.includes(t))draft.tags.push(t);renderTags();}
+    $('#tagInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addTag(this.value);this.value='';showSug();}});
+    function showSug(){
+      var q=$('#tagInput').value.trim().toLowerCase();
+      var seen={},pool=[];
+      PINNED_TAGS.concat(allExistingTags()).forEach(function(t){if(draft.tags.includes(t)||seen[t])return;seen[t]=1;pool.push(t);});
+      if(q)pool=pool.filter(function(t){return t.toLowerCase().indexOf(q)!==-1;});
+      pool=pool.slice(0,10);var sug=$('#tagSug');
+      if(!pool.length){sug.innerHTML='';return;}
+      sug.innerHTML='常用: '+pool.map(function(t){return '<a href="#" data-t="'+esc(t)+'" style="color:var(--accent);text-decoration:none;margin-right:8px">＋'+esc(t)+'</a>';}).join('');
+      Array.prototype.forEach.call(sug.querySelectorAll('a'),function(a){a.onclick=function(e){e.preventDefault();addTag(a.getAttribute('data-t'));showSug();};});
+    }
+    $('#tagInput').addEventListener('input',showSug);showSug();
+    $('#btnAutoTag').onclick=function(){var found=autoTags($('#fPrompt').value);var added=0;found.forEach(function(t){if(!draft.tags.includes(t)){draft.tags.push(t);added++;}});renderTags();toast(added?('自動加了 '+added+' 個標籤,可再增刪'):'沒抓到新標籤,手動加一個吧');};
+
+    $('#cancel').onclick=function(){isEdit?openDetail(existing.id):closeModal();};
+    $('#ov').onclick=function(e){if(e.target.id==='ov'){isEdit?openDetail(existing.id):closeModal();}};
+    $('#save').onclick=function(){
+      var prompt=$('#fPrompt').value.trim();
+      if(!prompt){toast('請先貼上或組裝提示詞');return;}
+      draft.prompt=prompt;draft.updatedAt=Date.now();
+      if(isEdit){var idx=data.prompts.findIndex(function(x){return x.id===draft.id;});draft.createdAt=existing.createdAt||Date.now();if(idx>=0)data.prompts[idx]=draft;}
+      else{draft.createdAt=Date.now();data.prompts.push(draft);}
+      closeModal();persist();toast(isEdit?'已儲存':'已收藏 ✓');
+    };
+  }
+
+  /* ---------- 提示詞產生器(模板公式 + 組裝 + AI聲明 三合一) ---------- */
+  var DISCLAIMER='图片非真人，是ai人物模型。';
+  var SPEC_VLOG='9:16竖屏，8K超清，真人超写实，皮肤纹理细腻，五官对称无畸变、画面稳定不崩坏。';
+  var CAMERA={'推軌':'緩緩向前推軌','拉遠':'緩緩向後拉遠','環繞':'環繞主體旋轉','俯拍':'由上而下俯拍','航拍':'航拍高空俯瞰','手持':'手持跟拍、輕微晃動','固定':'固定機位','跟拍':'跟隨主體移動'};
+  var FREE_GROUPS={
+    運鏡:['推軌','拉遠','環繞','俯拍','航拍','手持','固定','跟拍'],
+    景別:['特寫','近景','中景','遠景','廣角'],
+    光線:['逆光','黃昏日落','夜景月光','柔和光線','自然光','霓虹光'],
+    色調:['冷藍色調','暖金色調','高對比','低飽和柔和','黑白'],
+    氛圍:['空靈','孤獨','夢幻','浪漫','神秘','史詩','寧靜','溫馨'],
+    風格:['電影感','寫實質感','賽博龐克','復古膠片','水墨風','動畫風','超現實'],
+    畫質:['4K 高畫質','8K 超高清']
+  };
+  var FREE_SINGLE={'運鏡':1,'景別':1,'光線':1,'色調':1,'畫質':1};
+  var VLOG_VIEWS=['自拍視角(主視角)','第三視角(看得到攝影師)'];
+  var VLOG_MOODS=['可愛溫柔','元氣活力','唯美','空靈','浪漫','電影感','寫實質感'];
+  var DRAMA_DUR=['10秒','15秒','30秒'];
+  var VLOG_SUBJECTS=['精緻台灣女生','擬人化柯基犬','AI 女愛豆','古風漢服少女','時尚都市女孩'];
+  var SNIP_VLOG={
+    '開場':[['起床','清晨在柔和晨光中緩緩醒來，伸個懶腰'],['打招呼','對著鏡頭揮手笑說「哈囉大家，今天要出發囉」'],['化妝出門','坐在梳妝台前化好精緻妝容，背上包包出門']],
+    '交通':[['搭車','搭上電車，靠窗看著窗外流動的風景'],['走路','走在熱鬧的人行道上，輕快地哼著歌'],['搭飛機','坐上飛機，打開平板查看今天的行程攻略']],
+    '地點':[['抵達','抵達目的地，張開雙手開心地轉一圈'],['打卡','在著名地標前擺出可愛姿勢自拍打卡'],['吃東西','走進溫馨的小店，點了一份人氣美食']],
+    '互動':[['點餐','和店員微笑打招呼、開心點餐'],['比讚','對著鏡頭比讚說「真的超級好吃的欸」'],['玩鬧','和朋友擊掌大笑，玩得很開心']],
+    '收尾':[['夕陽','看著夕陽揮手說「今天玩得好開心」'],['道晚安','回到房間躺在床上，對鏡頭說「明天見」'],['wink','對著鏡頭俏皮地 wink，笑著說「拜拜」定格結尾']]
+  };
+  var SNIP_DRAMA={
+    '開場':[['花絮自拍','镜头：片場花絮自拍，狀態鬆弛優雅，直面鏡頭輕快說「今天拍最爽的劇情啦」']],
+    '反轉':[['秒切冷厲','镜头：瞬間收起笑意，眉眼驟然變冷、眼神凌厉，氣場切換']],
+    '對手戲':[['甩巴掌','镜头：抬手俐落甩出一巴掌（借位拍攝），眼神狠戾緊盯對面'],['反手一掌','镜头：反手再給一掌，身體前傾、姿態傲慢強勢']],
+    '狠台詞':[['羞辱','台詞（陰冷跋扈）：「你區區庶出賤婢，也敢覬覦本宮的東西？痴心妄想！」'],['威嚇','台詞（嘲諷）：「記住你的身份，你的榮華都是本宮給的！」']],
+    '收尾':[['卡→wink','镜头：打完表情平靜如水、冷眼睥睨，畫外一聲「卡」，瞬間破功對鏡頭 wink 定格']]
+  };
+  function snipPanel(targetId,groups,conn){
+    var html='<div class="snipwrap"><div class="lab">常用橋段(點一下加進上面,可連點)</div>';
+    Object.keys(groups).forEach(function(g){
+      html+='<div class="sniprow"><span class="snipg">'+esc(g)+'</span>';
+      html+=groups[g].map(function(it){return '<button type="button" class="snip" data-t="'+targetId+'" data-c="'+esc(conn)+'" data-x="'+esc(it[1])+'">＋'+esc(it[0])+'</button>';}).join('');
+      html+='</div>';
+    });
+    return html+'</div>';
+  }
+  function subjChips(){ return '<div class="sniprow" style="margin:-2px 0 12px"><span class="snipg">快選</span>'+VLOG_SUBJECTS.map(function(s){return '<button type="button" class="subj" data-x="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>'; }
+
+  function chipGroup(g,opts,single){
+    var chips=opts.map(function(v){return '<button type="button" data-g="'+esc(g)+'" data-v="'+esc(v)+'" data-single="'+(single?'1':'0')+'">'+esc(v)+'</button>';}).join('');
+    return '<div class="bgroup"><div class="lab">'+esc(g)+(single?'':'(可多選)')+'</div><div class="chips">'+chips+'</div></div>';
+  }
+  function withDisc(d,text){ return d?(DISCLAIMER+'\n'+text):text; }
+  function assembleFree(sel){
+    var subject=(sel.subject||'').trim(),action=(sel.action||'').trim(),seg=[];
+    var head=subject; if(action)head=head?head+'，'+action:action; if(head)seg.push(head);
+    if(sel['運鏡'][0])seg.push('鏡頭'+(CAMERA[sel['運鏡'][0]]||sel['運鏡'][0]));
+    var visual=[]; if(sel['景別'][0])visual.push(sel['景別'][0]); if(sel['光線'][0])visual.push(sel['光線'][0]); if(sel['色調'][0])visual.push(sel['色調'][0]);
+    if(visual.length)seg.push(visual.join('，'));
+    if(sel['氛圍'].length)seg.push('氛圍'+sel['氛圍'].join('、'));
+    var tail=[]; if(sel['風格'].length)tail.push(sel['風格'].join('、')); if(sel['畫質'][0])tail.push(sel['畫質'][0]);
+    if(tail.length)seg.push(tail.join('，'));
+    return seg.join('。')+(seg.length?'。':'');
+  }
+
+  function openBuilder(mode,onDone,st){
+    st=st||{}; mode=mode||'vlog';
+    var disc=(st.disc!==undefined)?st.disc:true;
+    var MODES=[['vlog','沉浸 vlog'],['drama','反差劇情'],['free','自由組裝']];
+    var wrap=document.createElement('div'); wrap.className='overlay top'; wrap.id='ovB';
+    var body='';
+    if(mode==='vlog'){
+      body='<div class="field"><label>主角(必填)</label><input type="text" id="vSubject" placeholder="例如:精緻台灣女生 / 一隻擬人化柯基"></div>'+
+        subjChips()+
+        '<div class="field"><label>標題字幕</label><input type="text" id="vTitle" placeholder="例如:歡迎收看我的京都賞櫻之旅"></div>'+
+        chipGroup('視角',VLOG_VIEWS,true)+
+        '<div class="field"><label>流程(可含台詞「…」)</label><textarea id="vFlow" placeholder="用下面的橋段一鍵拼,或自己打:首先… 然後… 最後…"></textarea></div>'+
+        snipPanel('vFlow',SNIP_VLOG,'，然後')+
+        '<div class="field"><label>BGM</label><input type="text" id="vBgm" placeholder="例如:welcome to New York / 輕快活力純音樂"></div>'+
+        chipGroup('氛圍',VLOG_MOODS,false);
+    } else if(mode==='drama'){
+      body='<div class="field"><label>概念(必填)</label><input type="text" id="dConcept" placeholder="例如:惡毒女配片場日常,私下溫柔切狠戾"></div>'+
+        chipGroup('時長',DRAMA_DUR,true)+
+        '<div class="field"><label>服飾/髮型/妝容(選填)</label><textarea id="dCostume" placeholder="例如:暗紅織金交領裙、高盤髮髻插赤金步搖、濃艷妝"></textarea></div>'+
+        '<div class="field"><label>分鏡(一行一鏡,可含台詞)</label><textarea id="dShots" placeholder="用下面的橋段一鍵拼,或自己打分鏡"></textarea></div>'+
+        snipPanel('dShots',SNIP_DRAMA,'NL')+
+        '<div class="field"><label>BGM</label><input type="text" id="dBgm" placeholder="例如:古風悬疑鋪墊 + 重音卡點"></div>';
+    } else {
+      body='<div class="field"><label>主體 / 畫面(必填)</label><input type="text" id="fSubject" placeholder="例如:一位白衣女子走在雨中的老街"></div>'+
+        '<div class="field"><label>動作(選填)</label><input type="text" id="fAction" placeholder="例如:回頭望向鏡頭"></div>'+
+        Object.keys(FREE_GROUPS).map(function(g){return chipGroup(g,FREE_GROUPS[g],!!FREE_SINGLE[g]);}).join('');
+    }
+    wrap.innerHTML='<div class="sheet">'+
+      '<h2>🧩 提示詞產生器</h2>'+
+      '<div class="typepick" id="bMode" style="margin-bottom:12px">'+MODES.map(function(m){return '<button type="button" data-m="'+m[0]+'"'+(m[0]===mode?' class="on"':'')+'>'+m[1]+'</button>';}).join('')+'</div>'+
+      '<label class="discrow"><input type="checkbox" id="bDisc"'+(disc?' checked':'')+'><span>開頭自動加「'+esc(DISCLAIMER)+'」</span></label>'+
+      body+
+      '<div class="bgroup"><div class="lab">預覽</div><div class="preview empty-p" id="bPrev">填一填,這裡會即時組出提示詞…</div></div>'+
+      '<div class="row"><button class="btn ghost" id="bCancel">取消</button><button class="btn" id="bDone">填入提示詞</button></div>'+
+    '</div>';
+    modalArea.appendChild(wrap);
+
+    var sel={};
+    function selArr(g){ if(!sel[g])sel[g]=[]; return sel[g]; }
+    function val(s){ var e=$(s); return e?e.value.trim():''; }
+    function assemble(){
+      var d=$('#bDisc').checked,p;
+      if(mode==='vlog'){
+        var subject=val('#vSubject'); if(!subject)return '';
+        var view=(sel['視角']&&sel['視角'][0])||'主视角/自拍视角',title=val('#vTitle'),flow=val('#vFlow'),bgm=val('#vBgm'),moods=sel['氛圍']||[];
+        p=['主角：'+subject+'。视角：'+view+'，vlog沉浸感。'];
+        if(title)p.push('标题字幕：「'+title+'」');
+        if(flow)p.push('流程：'+flow);
+        if(bgm)p.push('BGM：'+bgm+'。');
+        p.push((moods.length?moods.join('、')+'，':'')+SPEC_VLOG);
+        return withDisc(d,p.join('\n'));
+      } else if(mode==='drama'){
+        var concept=val('#dConcept'); if(!concept)return '';
+        var dur=(sel['時長']&&sel['時長'][0])||'10秒',costume=val('#dCostume'),shots=val('#dShots'),dbgm=val('#dBgm');
+        p=['概念：'+concept+'。','规格：'+dur+'，9:16，8K高帧，真人超写实。'];
+        if(costume)p.push('服饰发型妆容：'+costume);
+        if(shots)p.push(shots);
+        if(dbgm)p.push('BGM：'+dbgm+'。');
+        p.push('全局：古装影视质感，前后反差，光影层次丰富，细节拉满。');
+        p.push('声明：参考图为AI生成虚拟爱豆，非真实人脸，无侵权。');
+        return withDisc(d,p.join('\n'));
+      } else {
+        var subj=val('#fSubject'); if(!subj)return '';
+        return withDisc(d,assembleFree({subject:subj,action:val('#fAction'),'運鏡':selArr('運鏡'),'景別':selArr('景別'),'光線':selArr('光線'),'色調':selArr('色調'),'氛圍':selArr('氛圍'),'風格':selArr('風格'),'畫質':selArr('畫質')}));
+      }
+    }
+    function refresh(){ var t=assemble(),prev=$('#bPrev'); if(t){prev.textContent=t;prev.classList.remove('empty-p');}else{prev.textContent='填一填,這裡會即時組出提示詞…';prev.classList.add('empty-p');} }
+    Array.prototype.forEach.call(wrap.querySelectorAll('input[type=text],textarea'),function(e){e.addEventListener('input',refresh);});
+    $('#bDisc').addEventListener('change',refresh);
+    Array.prototype.forEach.call(wrap.querySelectorAll('.chips button'),function(b){
+      b.onclick=function(){
+        var g=b.getAttribute('data-g'),v=b.getAttribute('data-v'),single=b.getAttribute('data-single')==='1',arr=selArr(g);
+        if(single){var was=arr[0]===v;sel[g]=was?[]:[v];Array.prototype.forEach.call(wrap.querySelectorAll('.chips button[data-g="'+g+'"]'),function(x){x.classList.toggle('on',!was&&x===b);});}
+        else{if(arr.indexOf(v)!==-1){sel[g]=arr.filter(function(x){return x!==v;});b.classList.remove('on');}else{arr.push(v);b.classList.add('on');}}
+        refresh();
+      };
+    });
+    Array.prototype.forEach.call(wrap.querySelectorAll('.snip'),function(b){
+      b.onclick=function(){var ta=$('#'+b.getAttribute('data-t'));if(!ta)return;var x=b.getAttribute('data-x'),c=b.getAttribute('data-c');if(c==='NL')c='\n';var cur=ta.value.replace(/\s+$/,'');ta.value=cur?(cur+c+x):x;refresh();};
+    });
+    Array.prototype.forEach.call(wrap.querySelectorAll('.subj'),function(b){
+      b.onclick=function(){var e=$('#vSubject');if(e){e.value=b.getAttribute('data-x');refresh();}};
+    });
+    Array.prototype.forEach.call(wrap.querySelectorAll('#bMode button'),function(b){
+      b.onclick=function(){var nm=b.getAttribute('data-m');if(nm===mode)return;var d=$('#bDisc').checked;wrap.remove();openBuilder(nm,onDone,{disc:d});};
+    });
+    $('#bCancel').onclick=function(){wrap.remove();};
+    wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
+    $('#bDone').onclick=function(){var text=assemble();if(!text){toast('請先填必填欄位');return;}wrap.remove();onDone(text,'video');};
+  }
+
+  $('#btnAdd').onclick=function(){openForm(null);};
+  $('#btnBuilder').onclick=function(){
+    openBuilder('vlog',function(text){ openForm(null,{type:(viewType==='image'?'image':'video'),prompt:text}); });
+  };
+  searchEl.oninput=function(){query=this.value.trim().toLowerCase();render();};
+
+  /* ---------- export / import ---------- */
+  $('#btnExport').onclick=function(){var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='seedance-提示詞備份.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);};
+  $('#btnImport').onclick=function(){$('#fileImport').click();};
+  $('#fileImport').onchange=function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var parsed=JSON.parse(rd.result);var incoming=Array.isArray(parsed)?parsed:(parsed.prompts||[]);data.prompts=mergePrompts(data.prompts,incoming);normalize();persist();toast('匯入完成,共 '+data.prompts.length+' 條');}catch(err){toast('檔案格式不對,無法匯入');}};rd.readAsText(f);e.target.value='';};
+
+  function mergePrompts(a,b){
+    var m=new Map();
+    (a||[]).forEach(function(p){
+      if(p&&p.id)m.set(p.id,p);
+    });
+    var merged=0,kept=0;
+    (b||[]).forEach(function(p){
+      if(!p||!p.id)return;
+      var e=m.get(p.id);
+      if(!e||(p.updatedAt||0)>=(e.updatedAt||0)){
+        m.set(p.id,p);
+        merged++;
+      }else{
+        kept++;
+      }
+    });
+    console.log('[merge] result:', m.size, 'items (merged:', merged, 'kept:', kept, ')');
+    return Array.from(m.values());
+  }
+
+  /* ---------- Google Drive sync ---------- */
+  var DRIVE_STEM='seedance-prompts-data', DRIVE_TEXT_STEM='seedance-prompts-text', DRIVE_FOLDER_NAME='Seedance提示詞_同步資料';
+  function stampedName(stem){var d=new Date();function z(n){return (n<10?'0':'')+n;}return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+'-'+z(d.getMinutes())+'-'+z(d.getSeconds())+' '+stem+'.json';}
+  var lastTextMirror='';
+  function saveTextMirror(){
+    if(driveState!=='ready'||!window.claude||!window.claude.mcp)return;
+    var slim=data.prompts.map(function(p){return {type:p.type||'video',prompt:p.prompt,tags:p.tags||[]};});
+    var body=JSON.stringify(slim);
+    if(body===lastTextMirror)return; /* 沒變就不重複寫 */
+    var req={title:stampedName(DRIVE_TEXT_STEM),textContent:body,contentMimeType:'application/json',disableConversionToGoogleType:true};
+    if(driveFolderId)req.parentId=driveFolderId;
+    window.claude.mcp.callTool(driveServer,'create_file',req).then(function(){lastTextMirror=body;}).catch(function(){});
+  }
+  var driveServer=null,driveFolderId=null,driveState='checking',driveBusy=false,driveDirty=false,lastSyncedAt=null,driveSaveTimer=null;
+
+  function renderSyncUI(){
+    var label=$('#syncLabel'),refresh=$('#btnRefresh');
+    var map={checking:['dot-off','檢查雲端連線中…'],no_mcp:['dot-off','僅存在這台裝置(此處不支援雲端同步)'],not_connected:['dot-warn','☁ 未連接 Google Drive,僅存本機'],needs_reauth:['dot-warn','⚠ Google Drive 需要重新授權'],selection_required:['dot-warn','⚠ 請選擇要用的 Google Drive 帳號'],sync_error:['dot-warn','⚠ 雲端同步暫時失敗,仍存本機'],ready:['dot-ok',driveBusy?'☁ 同步中…':(driveDirty?'☁ 即將同步…':('☁ 已同步'+(lastSyncedAt?' '+new Date(lastSyncedAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}):'')))]};
+    var m=map[driveState]||map.checking;label.innerHTML='<span class="dot '+m[0]+'"></span>'+m[1];refresh.style.display=(driveState==='ready')?'inline-block':'none';
+  }
+  function b64ToUtf8(b64){var bin=atob(b64),bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder('utf-8').decode(bytes);}
+
+  function driveDiscover(){
+    if(!window.claude||!window.claude.mcp){driveState='no_mcp';renderSyncUI();return Promise.resolve(false);}
+    return window.claude.mcp.listTools().then(function(res){
+      var srv=(res.servers||[]).find(function(s){var n=(s.tools||[]).map(function(t){return t.name;});return n.indexOf('create_file')!==-1&&n.indexOf('search_files')!==-1;});
+      if(!srv){driveState='not_connected';renderSyncUI();return false;}
+      if(srv.authStatus==='needs_reauth'){driveState='needs_reauth';renderSyncUI();return false;}
+      driveServer=srv.server;driveState='ready';renderSyncUI();
+      return ensureFolder().then(function(){return true;});
+    }).catch(function(err){driveState=(err&&err.code==='selection_required')?'selection_required':'sync_error';renderSyncUI();return false;});
+  }
+  function ensureFolder(){
+    return window.claude.mcp.callTool(driveServer,'search_files',{query:"title = '"+DRIVE_FOLDER_NAME+"' and mimeType = 'application/vnd.google-apps.folder'",pageSize:10}).then(function(res){
+      var files=(res.payload&&res.payload.files)||[];
+      if(files.length){driveFolderId=files[0].id;return;}
+      return window.claude.mcp.callTool(driveServer,'create_file',{title:DRIVE_FOLDER_NAME,contentMimeType:'application/vnd.google-apps.folder'}).then(function(c){driveFolderId=c.payload&&c.payload.id;});
+    }).catch(function(){driveFolderId=null;});
+  }
+  function findLatest(){
+    var files=[],pageToken;
+    function page(i){return window.claude.mcp.callTool(driveServer,'search_files',{query:"title contains '"+DRIVE_STEM+"'",pageSize:100,pageToken:pageToken}).then(function(res){var batch=(res.payload&&res.payload.files)||[];files=files.concat(batch);pageToken=res.payload&&res.payload.nextPageToken;if(pageToken&&i<10)return page(i+1);});}
+    return page(0).then(function(){if(!files.length)return null;files.sort(function(a,b){return new Date(b.createdTime)-new Date(a.createdTime);});return files[0];});
+  }
+  function loadFromDrive(){
+    if(driveState!=='ready')return Promise.resolve(false);
+    driveBusy=true;renderSyncUI();
+    return findLatest().then(function(latest){
+      if(!latest){
+        console.log('[drive] no files found');
+        return false;
+      }
+      console.log('[drive] loading latest:', latest.name);
+      return window.claude.mcp.callTool(driveServer,'download_file_content',{fileId:latest.id}).then(function(dl){
+        var b64=dl.payload&&dl.payload.content;
+        if(!b64){
+          console.warn('[drive] no content in download');
+          return false;
+        }
+        try{
+          var remote=JSON.parse(b64ToUtf8(b64));
+          var rp=Array.isArray(remote)?remote:(remote.prompts||[]);
+          var before=JSON.stringify(data.prompts);
+          console.log('[drive] merging:', rp.length, 'remote prompts');
+          data.prompts=mergePrompts(data.prompts,rp);
+          normalize();
+          lastSyncedAt=Date.now();
+          idbSet(data);
+          render();
+          if(JSON.stringify(data.prompts)!==before&&JSON.stringify(data.prompts)!==JSON.stringify(rp))scheduleDriveSave();
+          return true;
+        }catch(e){
+          console.error('[drive] parse/merge error:', e);
+          return false;
+        }
+      });
+    }).catch(function(e){
+      console.error('[drive] load error:', e);
+      driveState='sync_error';
+      return false;
+    }).then(function(r){
+      driveBusy=false;
+      renderSyncUI();
+      return r;
+    });
+  }
+  function saveToDrive(){
+    if(driveState!=='ready'||!driveDirty)return;
+    driveBusy=true;renderSyncUI();
+    var req={title:stampedName(DRIVE_STEM),textContent:JSON.stringify(data),contentMimeType:'application/json',disableConversionToGoogleType:true};
+    if(driveFolderId)req.parentId=driveFolderId;
+    window.claude.mcp.callTool(driveServer,'create_file',req).then(function(res){
+      console.log('[drive] save success');
+      driveDirty=false;
+      lastSyncedAt=Date.now();
+      saveTextMirror();
+    }).catch(function(err){
+      console.error('[drive] save error:', err);
+      if(err&&err.code==='needs_reauth'){driveState='needs_reauth';}
+      else if(err&&err.code==='server_not_connected'){driveState='not_connected';}
+      else {
+        driveState='sync_error';
+        driveDirty=true; /* retry later */
+      }
+    }).then(function(){
+      driveBusy=false;
+      renderSyncUI();
+    });
+  }
+  function scheduleDriveSave(){
+    driveDirty=true;
+    renderSyncUI();
+    if(driveState!=='ready'&&driveState!=='sync_error')return;
+    clearTimeout(driveSaveTimer);
+    driveSaveTimer=setTimeout(saveToDrive,1500);
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='hidden'){
+      clearTimeout(driveSaveTimer);
+      if(driveDirty){
+        console.log('[sync] visibility hidden, saving now');
+        saveToDrive();
+      }
+    }
+  });
+  window.addEventListener('pagehide',function(){
+    clearTimeout(driveSaveTimer);
+    if(driveDirty){
+      console.log('[sync] pagehide, saving now');
+      saveToDrive();
+    }
+  });
+  window.addEventListener('beforeunload',function(){
+    clearTimeout(driveSaveTimer);
+    if(driveDirty){
+      console.log('[sync] beforeunload, saving now');
+      saveToDrive();
+    }
+  });
+  $('#btnRefresh').onclick=function(){loadFromDrive();};
+
+  /* ---------- boot ---------- */
+  function withTimeout(p,ms){return Promise.race([p,new Promise(function(r){setTimeout(function(){r('__timeout');},ms);})]);}
+  render();renderSyncUI();
+  withTimeout(idbGet(),1500).then(function(saved){
+    console.log('[boot] idb load:', saved?'ok':'empty');
+    if(saved&&saved!=='__timeout'&&saved.prompts){
+      data=saved;
+      normalize();
+      render();
+    }
+  }).then(function(){
+    driveBusy=false;
+    driveDirty=false;
+    return driveDiscover();
+  }).then(function(ok){
+    if(ok){
+      loadFromDrive().then(function(){
+        saveTextMirror();
+      }).catch(function(e){
+        console.error('[boot] drive load failed:', e);
+      });
+    }
+  }).catch(function(e){
+    console.error('[boot] error:', e);
+  });
+
+})();
+</script>
